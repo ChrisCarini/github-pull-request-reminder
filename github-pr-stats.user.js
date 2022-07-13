@@ -39,14 +39,23 @@
             const metrics = data.metrics[0];
             debug(metrics);
 
+            // Create element for us to use
+            const ourThing = document.createElement("div");
+
             // TODO: Do some stuff with the metrics...
             for (const [metricName, stats] of Object.entries(metrics)) {
                 debug(`Metric Name: ${metricName}`);
+                ourThing.innerHTML += `<hr/><div class="text-bold discussion-sidebar-heading discussion-sidebar-toggle hx_rsm-trigger">Metric Name: ${metricName}</div><br/>`;
+
                 debug(`Metric Stats:`);
                 for (const [statName, statValue] of Object.entries(stats)) {
                     debug(`---> ${statName}: ${statValue}`);
+                    ourThing.innerHTML += `<span>${statName}: ${statValue}</span><br/>`;
                 }
             }
+
+            document.getElementById("partial-discussion-sidebar").prepend(ourThing)
+
         }
     });
 
