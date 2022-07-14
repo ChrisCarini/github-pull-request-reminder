@@ -6,13 +6,14 @@
 // @author       Chris Carini & Sulabh Bansal
 // @match        https://*.ghe.com/*/pull/*
 // @match        https://github.com/*/pull/*
+// @match        https://github.com/*
+// @match        https://*.ghe.com/*
 // @grant        GM_xmlhttpRequest
 // @connect      https://chriscarini.com/developer_insights/data.json
 // @connect      chriscarini.com
 // @updateURL https://raw.githubusercontent.com/ChrisCarini/github-pull-request-reminder/main/github-pr-stats.user.js
 // @downloadURL https://raw.githubusercontent.com/ChrisCarini/github-pull-request-reminder/main/github-pr-stats.user.js
 // ==/UserScript==
-
 
 function loadDeveloperInsights() {
     'use strict';
@@ -55,8 +56,11 @@ function loadDeveloperInsights() {
                 }
             }
 
-            document.getElementById("partial-discussion-sidebar").prepend(ourThing)
-
+            var theirThing = document.getElementById("partial-discussion-sidebar");
+            if (typeof theirThing === "undefined" || (typeof theirThing === "object" && theirThing === null)) {
+                theirThing = document.getElementsByClassName("BorderGrid--spacious")[0];
+            }
+            theirThing.prepend(ourThing)
         }
     });
 
