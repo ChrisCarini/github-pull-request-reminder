@@ -13,7 +13,8 @@
 // @downloadURL https://raw.githubusercontent.com/ChrisCarini/github-pull-request-reminder/main/github-pr-stats.user.js
 // ==/UserScript==
 
-(function () {
+
+function loadDeveloperInsights() {
     'use strict';
 
     // True prints more debug information in the console; False prints minimal things in the console log.
@@ -60,4 +61,6 @@
     });
 
     console.log("GitHub PR Stats completed.");
-})();
+}
+
+window.addEventListener("load", loadDeveloperInsights);
