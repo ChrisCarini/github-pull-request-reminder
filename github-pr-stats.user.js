@@ -36,7 +36,7 @@
             const data = JSON.parse(result.responseText);
             debug(data);
 
-            const metrics = data.metrics[0];
+            const metrics = data.metrics;
             debug(metrics);
 
             // Create element for us to use
