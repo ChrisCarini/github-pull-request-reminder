@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GitHub PR Stats
 // @namespace    https://chriscarini.com
-// @version      0.0.1
+// @version      0.0.2
 // @description  Augment GitHub PRs with nice statistics.
 // @author       Chris Carini & Sulabh Bansal
 // @match        https://*.ghe.com/*/pull/*
