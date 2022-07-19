@@ -1,8 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {wait} from './wait'
 
-const myToken = core.getInput('myToken')
+const myToken = core.getInput('GITHUB_TOKEN')
 const octokit = github.getOctokit(myToken)
 
 const owner: string = github.context.repo.owner
@@ -33,6 +32,7 @@ async function run(): Promise<void> {
       core.info(`======================================================================`)
       core.info(`Link:       ${pr.html_url}`)
       core.info(`Created at: ${pr.created_at}`)
+      core.info(`Created at: ${pr.updated_at}`)
       core.info(`Reviewers:  ${reviewerLogins}`)
     })
   } catch (error) {
