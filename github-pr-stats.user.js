@@ -52,7 +52,7 @@ function loadDeveloperInsights() {
                 debug(`Metric Stats:`);
                 for (const [statName, statValue] of Object.entries(stats)) {
                     debug(`---> ${statName}: ${statValue}`);
-                    ourThing.innerHTML += `<span>${statName}: ${statValue}</span><br/>`;
+                    ourThing.innerHTML += `<span>${statName}: ${statValue['Overall']}</span><br/>`;
                 }
             }
 
