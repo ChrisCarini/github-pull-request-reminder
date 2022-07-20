@@ -49,27 +49,29 @@ async function run(): Promise<void> {
 
       const current_time = new Date()
       const pr_creation_time = new Date(pr.created_at)
-      const age_seconds = (current_time.getTime() - pr_creation_time.getTime()) * 1000
-      var reviewer_mention:string = "";
+      const age_seconds = (current_time.getTime() - pr_creation_time.getTime()) / 1000
+      let reviewer_mention:string = "";
       for (let login of reviewerLogins.split(', ')) {
         if(login != "") {
           reviewer_mention += "@" + login + " "
         }
       }
 
-      const comment = reviewer_mention + "Please review this pull request to reduce the P50 code review latency for this multiproduct."
+      const comment:string = "Please review this pull request to reduce the P50 code review latency for this multiproduct."
       core.info(`Overall p50 CRL:  ${crl_p50}`)
-      core.info(`Current Time: ${current_time.getTime() * 1000}`)
-      core.info(`Created at in seconds: ${pr_creation_time.getTime() * 1000}`)
       core.info(`Time since creation: ${age_seconds}`)
-      if(age_seconds >= crl_p50 - reminder_seconds) {
-        //comment when time since creation is within reminder time of the p50 crl
-        const create_params = {owner: owner as string, repo: repo as string, issue_number: pr.number as number, body: comment as string};
-        octokit.rest.issues.createComment(create_params);
-      }
-      const list_params = {owner, repo: repo, issue_number: pr.number}
-      const comments = octokit.rest.issues.listComments(list_params)
-      core.info(`Comments: ${comments}`)
+      const list_params = {owner: owner, repo: repo, issue_number: pr.number}
+      octokit.rest.issues.listComments(list_params).then(comments => {
+        const index = comments.data.findIndex(comments => comments.body?.includes(comment))
+        if (index === -1) {
+          core.info(`Needs reminder`)
+          if(age_seconds >= crl_p50 - reminder_seconds) {
+            //comment when time since creation is within reminder time of the p50 crl
+            const create_params = {owner: owner as string, repo: repo as string, issue_number: pr.number as number, body: (reviewer_mention + comment) as string};
+            octokit.rest.issues.createComment(create_params);
+          }
+        }
+      })
     })
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
