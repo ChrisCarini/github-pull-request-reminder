@@ -17,16 +17,16 @@ function pullRequests(repoOwner: string, repo: string) {
   })
 }
 
-async function getMetrics() {
+async function getMetrics(): Promise<any> {
   const url = "https://chriscarini.com/developer_insights/data.json";
   const response = await fetch(url)
-  const result = await response.json();
+  const result = await response.json() as any;
   return result;
 }
 
 async function run(): Promise<void> {
   const api_response = await getMetrics();
-  core.info(`CRL: ${api_response.metrics['Code Review Latency'].P50.Overall}`)
+  const crl_p50 = api_response.metrics['Code Review Latency'].P50.Overall
 
   try {
     const allOpenPrs = await pullRequests(owner, repo)
@@ -45,6 +45,15 @@ async function run(): Promise<void> {
       core.info(`Created at: ${pr.created_at}`)
       core.info(`Created at: ${pr.updated_at}`)
       core.info(`Reviewers:  ${reviewerLogins}`)
+
+      const current_time = new Date()
+      const pr_creation_time = new Date(pr.created_at)
+      const difference = current_time.getTime() - pr_creation_time.getTime()
+      const comment = "Please review within " + difference + " seconds to reduce the P50 code review latency."
+      if(difference < crl_p50) {
+        const data = {owner: 'me' as string, repo: 'fds' as string, issue_number: pr.number as number, body: comment as string};
+        octokit.rest.issues.createComment(data);
+      }
     })
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
