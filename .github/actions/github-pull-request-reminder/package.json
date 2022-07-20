@@ -1,5 +1,4 @@
 {
-  "type": "module",
   "name": "github-pull-request-reminder-action",
   "version": "0.0.1",
   "private": true,
