@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+import fetch from 'node-fetch';
 
 const myToken = core.getInput('GITHUB_TOKEN')
 const octokit = github.getOctokit(myToken)
@@ -16,7 +17,17 @@ function pullRequests(repoOwner: string, repo: string) {
   })
 }
 
+async function getMetrics() {
+  const url = "https://chriscarini.com/developer_insights/data.json";
+  const response = await fetch(url)
+  const result = await response.json();
+  return result;
+}
+
 async function run(): Promise<void> {
+  const api_response = await getMetrics();
+  core.info(`CRL: ${api_response.metrics['Code Review Latency'].P50.Overall}`)
+
   try {
     const allOpenPrs = await pullRequests(owner, repo)
     allOpenPrs.data.forEach(pr => {
