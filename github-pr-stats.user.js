@@ -15,22 +15,23 @@
 // @downloadURL https://raw.githubusercontent.com/ChrisCarini/github-pull-request-reminder/main/github-pr-stats.user.js
 // ==/UserScript==
 
+
+// True prints more debug information in the console; False prints minimal things in the console log.
+const DEBUG = true;
+
+// The base URL for which to fetch data
+const BASE_DATA_URL1 = `https://chriscarini.com/developer_insights/data.json?t=${Date.now()}`;
+
+function debug(msg) {
+    if (DEBUG) {
+        console.log(msg);
+    }
+}
+
 function loadDeveloperInsights() {
     'use strict';
 
-    // True prints more debug information in the console; False prints minimal things in the console log.
-    const DEBUG = true;
-
-    // The base URL for which to fetch data
-    const BASE_DATA_URL1 = `https://chriscarini.com/developer_insights/data.json?t=${Date.now()}`;
-
     console.log("GitHub PR Stats starting...");
-
-    function debug(msg) {
-        if (DEBUG) {
-            console.log(msg);
-        }
-    }
 
     debug("REQUEST URL: " + BASE_DATA_URL1);
     GM_xmlhttpRequest({
@@ -53,19 +54,22 @@ function loadDeveloperInsights() {
                 for (const [statName, statValue] of Object.entries(stats)) {
                     debug(`---> ${statName}: ${statValue['Overall']}`);
                     ourThing.innerHTML += `<span>${(statValue['Overall']/3600).toFixed(2)}</span>`;
-                    if(statName != 'P90') {
+                    if(statName !== 'P90') {
                        ourThing.innerHTML += `<span></span>/`;
                     }
                 }
                 ourThing.innerHTML += `</br>`;
                 for (const [statName, statValue] of Object.entries(stats)) {
                     ourThing.innerHTML += `<details>
-                                          <summary>${statName} Details</summary>
-                    <span><h5 style="color:MediumSeaGreen;">${(statValue['Small']/3600).toFixed(2)}S</h5></span>
-                    <span><h5 style="color:DodgerBlue;">${(statValue['Medium']/3600).toFixed(2)}M</h5></span>
-                    <span><h5 style="color:Orange;">${(statValue['Large']/3600).toFixed(2)}L</h5></span>
-                    <span><h5 style="color:Tomato;">${(statValue['X-Large']/3600).toFixed(2)}XL</h5></span>
-                                       </details>`;
+                      <summary>${statName} Details</summary>
+                      <table>
+                        <tr><th>Size</th><th>Biz Hrs</th></tr>
+                        <tr><td style='color:MediumSeaGreen;'>Small</td><th>${(statValue['Small']/3600).toFixed(2)}</th></tr>
+                        <tr><td style='color:DodgerBlue;'>Medium</td><th>${(statValue['Medium']/3600).toFixed(2)}</th></tr>
+                        <tr><td style='color:Orange;'>Large</td><th>${(statValue['Large']/3600).toFixed(2)}</th></tr>
+                        <tr><td style='color:Tomato;'>XL</td><th>${(statValue['X-Large']/3600).toFixed(2)}</th></tr>
+                      </table>
+                    </details>`;
                 }
                 ourThing.innerHTML += `</br>`;
             }
