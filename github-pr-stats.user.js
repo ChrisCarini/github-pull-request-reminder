@@ -22,7 +22,7 @@ function loadDeveloperInsights() {
     const DEBUG = true;
 
     // The base URL for which to fetch data
-    const BASE_DATA_URL1 = `https://chriscarini.com/developer_insights/data.json?t=${Date.now()}`;
+    const BASE_DATA_URL = `https://chriscarini.com/developer_insights/data.json?t=${Date.now()}`;
 
     console.log("GitHub PR Stats starting...");
 
@@ -32,9 +32,9 @@ function loadDeveloperInsights() {
         }
     }
 
-    debug("REQUEST URL: " + BASE_DATA_URL1);
+    debug("REQUEST URL: " + BASE_DATA_URL);
     GM_xmlhttpRequest({
-        method: "GET", url: BASE_DATA_URL1, onload: function (result) {
+        method: "GET", url: BASE_DATA_URL, onload: function (result) {
             const data = JSON.parse(result.responseText);
             debug(data);
 
