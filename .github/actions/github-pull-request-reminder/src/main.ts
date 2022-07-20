@@ -50,8 +50,11 @@ async function run(): Promise<void> {
       const pr_creation_time = new Date(pr.created_at)
       const difference = current_time.getTime() - pr_creation_time.getTime()
       const comment = "Please review within " + difference + " seconds to reduce the P50 code review latency."
-      if(difference < crl_p50) {
-        const data = {owner: 'me' as string, repo: 'fds' as string, issue_number: pr.number as number, body: comment as string};
+      core.info(`Overall p50 CRL:  ${crl_p50}`)
+      core.info(`Time since creation: ${difference}`)
+      if((difference/(1000 * 60 * 60)) < crl_p50) {
+        //comment only if time passed in hours is less than p50 code review latency
+        const data = {owner: owner as string, repo: repo as string, issue_number: pr.number as number, body: comment as string};
         octokit.rest.issues.createComment(data);
       }
     })
