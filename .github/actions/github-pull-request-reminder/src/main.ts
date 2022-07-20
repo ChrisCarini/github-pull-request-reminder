@@ -7,6 +7,7 @@ const octokit = github.getOctokit(myToken)
 
 const owner: string = github.context.repo.owner
 const repo: string = github.context.repo.repo
+const reminder_seconds = 15 * 60
 
 function pullRequests(repoOwner: string, repo: string) {
   return octokit.rest.pulls.list({
@@ -33,11 +34,11 @@ async function run(): Promise<void> {
     allOpenPrs.data.forEach(pr => {
       core.debug(`PR: ${JSON.stringify(pr, null, 2)}`)
 
-      const reviewerLogins = pr.requested_reviewers
-        ?.map(reviewer => {
+      const reviewerLogins: string = pr.requested_reviewers
+        ? pr.requested_reviewers.map(reviewer => {
           return reviewer.login
         })
-        .join(', ')
+        .join(', ') : '';
 
       core.info(`PR:   #${pr.number} by [${pr.user?.login}] - ${pr.title} (${pr.state})`)
       core.info(`======================================================================`)
@@ -48,12 +49,17 @@ async function run(): Promise<void> {
 
       const current_time = new Date()
       const pr_creation_time = new Date(pr.created_at)
-      const difference = current_time.getTime() - pr_creation_time.getTime()
-      const comment = "Please review within " + difference + " seconds to reduce the P50 code review latency."
+      const age_seconds = (current_time.getTime() - pr_creation_time.getTime()) * 1000
+      var reviewer_mention:string = "";
+      for (let login of reviewerLogins.split(', ')) {
+        reviewer_mention += "@" + login + " "
+      }
+
+      const comment = reviewer_mention + "Please review this pull request to reduce the P50 code review latency for this multiproduct."
       core.info(`Overall p50 CRL:  ${crl_p50}`)
-      core.info(`Time since creation: ${difference}`)
-      if((difference/(1000 * 60 * 60)) < crl_p50) {
-        //comment only if time passed in hours is less than p50 code review latency
+      core.info(`Time since creation: ${age_seconds}`)
+      if(age_seconds >= crl_p50 - reminder_seconds) {
+        //comment when time since creation is within reminder time of the p50 crl
         const data = {owner: owner as string, repo: repo as string, issue_number: pr.number as number, body: comment as string};
         octokit.rest.issues.createComment(data);
       }

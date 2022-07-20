@@ -13275,6 +13275,7 @@ const myToken = core.getInput('GITHUB_TOKEN');
 const octokit = github.getOctokit(myToken);
 const owner = github.context.repo.owner;
 const repo = github.context.repo.repo;
+const reminder_seconds = 15 * 60;
 function pullRequests(repoOwner, repo) {
     return octokit.rest.pulls.list({
         owner: repoOwner,
@@ -13298,12 +13299,14 @@ function run() {
         try {
             const allOpenPrs = yield pullRequests(owner, repo);
             allOpenPrs.data.forEach(pr => {
-                var _a, _b;
+                var _a;
                 core.debug(`PR: ${JSON.stringify(pr, null, 2)}`);
-                const reviewerLogins = (_a = pr.requested_reviewers) === null || _a === void 0 ? void 0 : _a.map(reviewer => {
-                    return reviewer.login;
-                }).join(', ');
-                core.info(`PR:   #${pr.number} by [${(_b = pr.user) === null || _b === void 0 ? void 0 : _b.login}] - ${pr.title} (${pr.state})`);
+                const reviewerLogins = pr.requested_reviewers
+                    ? pr.requested_reviewers.map(reviewer => {
+                        return reviewer.login;
+                    })
+                        .join(', ') : '';
+                core.info(`PR:   #${pr.number} by [${(_a = pr.user) === null || _a === void 0 ? void 0 : _a.login}] - ${pr.title} (${pr.state})`);
                 core.info(`======================================================================`);
                 core.info(`Link:       ${pr.html_url}`);
                 core.info(`Created at: ${pr.created_at}`);
@@ -13311,12 +13314,16 @@ function run() {
                 core.info(`Reviewers:  ${reviewerLogins}`);
                 const current_time = new Date();
                 const pr_creation_time = new Date(pr.created_at);
-                const difference = current_time.getTime() - pr_creation_time.getTime();
-                const comment = "Please review within " + difference + " seconds to reduce the P50 code review latency.";
+                const age_seconds = (current_time.getTime() - pr_creation_time.getTime()) * 1000;
+                var reviewer_mention = "";
+                for (let login of reviewerLogins.split(', ')) {
+                    reviewer_mention += "@" + login + " ";
+                }
+                const comment = reviewer_mention + "Please review this pull request to reduce the P50 code review latency for this multiproduct.";
                 core.info(`Overall p50 CRL:  ${crl_p50}`);
-                core.info(`Time since creation: ${difference}`);
-                if ((difference / (1000 * 60 * 60)) < crl_p50) {
-                    //comment only if time passed in hours is less than p50 code review latency
+                core.info(`Time since creation: ${age_seconds}`);
+                if (age_seconds >= crl_p50 - reminder_seconds) {
+                    //comment when time since creation is within reminder time of the p50 crl
                     const data = { owner: owner, repo: repo, issue_number: pr.number, body: comment };
                     octokit.rest.issues.createComment(data);
                 }
