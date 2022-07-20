@@ -52,17 +52,24 @@ async function run(): Promise<void> {
       const age_seconds = (current_time.getTime() - pr_creation_time.getTime()) * 1000
       var reviewer_mention:string = "";
       for (let login of reviewerLogins.split(', ')) {
-        reviewer_mention += "@" + login + " "
+        if(login != "") {
+          reviewer_mention += "@" + login + " "
+        }
       }
 
       const comment = reviewer_mention + "Please review this pull request to reduce the P50 code review latency for this multiproduct."
       core.info(`Overall p50 CRL:  ${crl_p50}`)
+      core.info(`Current Time: ${current_time.getTime() * 1000}`)
+      core.info(`Created at in seconds: ${pr_creation_time.getTime() * 1000}`)
       core.info(`Time since creation: ${age_seconds}`)
       if(age_seconds >= crl_p50 - reminder_seconds) {
         //comment when time since creation is within reminder time of the p50 crl
-        const data = {owner: owner as string, repo: repo as string, issue_number: pr.number as number, body: comment as string};
-        octokit.rest.issues.createComment(data);
+        const create_params = {owner: owner as string, repo: repo as string, issue_number: pr.number as number, body: comment as string};
+        octokit.rest.issues.createComment(create_params);
       }
+      const list_params = {owner, repo: repo, issue_number: pr.number}
+      const comments = octokit.rest.issues.listComments(list_params)
+      core.info(`Comments: ${comments}`)
     })
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
