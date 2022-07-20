@@ -11,6 +11,10 @@
 // @grant        GM_xmlhttpRequest
 // @connect      https://chriscarini.com/developer_insights/data.json
 // @connect      chriscarini.com
+// @connect      https://developer-productivity-insights.stg.corp.linkedin.com/api/v1/hack_projects/code_review/stats
+// @connect      developer-productivity-insights.stg.corp.linkedin.com
+// @connect      https://developer-productivity-insights.corp.linkedin.com/api/v1/hack_projects/code_review/stats
+// @connect      developer-productivity-insights.corp.linkedin.com
 // @updateURL https://raw.githubusercontent.com/ChrisCarini/github-pull-request-reminder/main/github-pr-stats.user.js
 // @downloadURL https://raw.githubusercontent.com/ChrisCarini/github-pull-request-reminder/main/github-pr-stats.user.js
 // ==/UserScript==
@@ -20,7 +24,7 @@
 const DEBUG = true;
 
 // The base URL for which to fetch data
-const BASE_DATA_URL1 = `https://chriscarini.com/developer_insights/data.json?t=${Date.now()}`;
+const BASE_DATA_URL = `https://chriscarini.com/developer_insights/data.json?t=${Date.now()}`;
 
 function debug(msg) {
     if (DEBUG) {
@@ -37,9 +41,34 @@ function loadDeveloperInsights() {
 
     console.log("GitHub PR Stats starting...");
 
-    debug("REQUEST URL: " + BASE_DATA_URL1);
+    const og_url = document.querySelectorAll('[property="og:url"]')[0].content;
+    let og_url_parts = og_url.split('/');
+
+    let repo_name_loc;
+
+    // 7 parts means it is a PR page
+    if (og_url_parts.length === 7) {
+        repo_name_loc = -3;
+    }
+    // 5 parts means it is the repo/projects main page
+    else if (og_url_parts.length === 5) {
+        repo_name_loc = -1;
+    }
+    // If it is something else; we have no idea so just exit.
+    else {
+        console.log(`meta tag for og:url had [${og_url_parts.length}] parts; this is != 5 or 7, so we don't know if repo or PR page. Exiting.`);
+        console.log(og_url);
+        console.log(og_url_parts);
+        return;
+    }
+
+    const project = og_url_parts.at(repo_name_loc);
+
+    const request_url = `${BASE_DATA_URL}?t=${Date.now()}&project=${project}`
+
+    debug(`REQUEST URL FOR PROJECT [${project}]: ${request_url}`);
     GM_xmlhttpRequest({
-        method: "GET", url: BASE_DATA_URL1, onload: function (result) {
+        method: "GET", url: request_url, onload: function (result) {
             const data = JSON.parse(result.responseText);
             debug(data);
 
