@@ -1,11 +1,21 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'GitHub Pull Request Reminder'
+description: 'Provide reminders to reviewers of PRs in a smart fashion.'
+author: 'Ankur Mehta, Chris Carini, and Sulabh Bansal'
 inputs:
   milliseconds: # change this
     required: true
     description: 'input description here'
     default: 'default value if applicable'
+#runs:
+#  using: 'node16'
+#  main: 'dist/index.js'
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: 'composite'
+  steps:
+    - name: Fetch JSON blob
+      shell: bash
+      run: |
+        curl -s https://chriscarini.com/developer_insights/data.json?project=our-test-project | jq . | tee data.json
+    - name: Remind
+      shell: bash
+      run: node16 'dist/index.js'
