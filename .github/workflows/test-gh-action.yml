@@ -13,6 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Fetch Data
+        shell: bash
+        run: |
+          curl -s https://chriscarini.com/developer_insights/data.json?project=our-test-project | jq . | tee data.json
+
       - uses: ./.github/actions/github-pull-request-reminder
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
