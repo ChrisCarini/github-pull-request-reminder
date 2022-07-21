@@ -65,7 +65,7 @@ async function run(): Promise<void> {
 
       const comment = `Hi ${reviewer_mention}
   
-`@${pr.user?.login}` opened this PR ${age_hours} business hours ago, and the P50 code review latency for this MP is ${crl_hours} business hours. If you are able, review this code now to help reduce this multiproduct's Code Review Latency!
+@${pr.user?.login} opened this PR ${age_hours} business hours ago, and the P50 code review latency for this MP is ${crl_hours} business hours. If you are able, review this code now to help reduce this multiproduct's Code Review Latency!
 
 Beep Boop Beep,
 GitHub PR Reminder Bot`
@@ -82,7 +82,7 @@ GitHub PR Reminder Bot`
               owner: owner as string,
               repo: repo as string,
               issue_number: pr.number as number,
-              body: (reviewer_mention + comment) as string
+              body: comment as string
             }
             octokit.rest.issues.createComment(create_params)
           }

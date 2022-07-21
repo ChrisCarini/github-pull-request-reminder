@@ -21,3 +21,4 @@ jobs:
       - uses: ./.github/actions/github-pull-request-reminder
 #        with:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./.github/actions/github-pull-request-metrics

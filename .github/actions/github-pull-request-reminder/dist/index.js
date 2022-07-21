@@ -13276,36 +13276,41 @@ const octokit = github.getOctokit(myToken);
 const owner = github.context.repo.owner;
 const repo = github.context.repo.repo;
 const reminder_seconds = 15 * 60;
-function pullRequests(repoOwner, repo) {
-    return octokit.rest.pulls.list({
-        owner: repoOwner,
-        repo: repo,
-        state: 'open',
-        sort: 'created'
+const seconds_in_hour = 3600;
+function pullRequests(repoOwner, repoName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return octokit.rest.pulls.list({
+            owner: repoOwner,
+            repo: repoName,
+            state: 'open',
+            sort: 'created'
+        });
     });
 }
 function getMetrics() {
     return __awaiter(this, void 0, void 0, function* () {
-        const url = "https://chriscarini.com/developer_insights/data.json";
+        const url = 'data.json';
         const response = yield (0, node_fetch_1.default)(url);
-        const result = yield response.json();
+        const result = (yield response.json());
         return result;
     });
 }
 function run() {
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         const api_response = yield getMetrics();
         const crl_p50 = api_response.metrics['Code Review Latency'].P50.Overall;
         try {
             const allOpenPrs = yield pullRequests(owner, repo);
-            allOpenPrs.data.forEach(pr => {
-                var _a;
+            for (const pr of allOpenPrs.data) {
                 core.debug(`PR: ${JSON.stringify(pr, null, 2)}`);
                 const reviewerLogins = pr.requested_reviewers
-                    ? pr.requested_reviewers.map(reviewer => {
+                    ? pr.requested_reviewers
+                        .map(reviewer => {
                         return reviewer.login;
                     })
-                        .join(', ') : '';
+                        .join(', ')
+                    : '';
                 core.info(`PR:   #${pr.number} by [${(_a = pr.user) === null || _a === void 0 ? void 0 : _a.login}] - ${pr.title} (${pr.state})`);
                 core.info(`======================================================================`);
                 core.info(`Link:       ${pr.html_url}`);
@@ -13315,28 +13320,39 @@ function run() {
                 const current_time = new Date();
                 const pr_creation_time = new Date(pr.created_at);
                 const age_seconds = (current_time.getTime() - pr_creation_time.getTime()) / 1000;
-                let reviewer_mention = "";
-                for (let login of reviewerLogins.split(', ')) {
-                    if (login != "") {
-                        reviewer_mention += "@" + login + " ";
+                const age_hours = age_seconds / seconds_in_hour;
+                const crl_hours = crl_p50 / seconds_in_hour;
+                let reviewer_mention = '';
+                for (const login of reviewerLogins.split(', ')) {
+                    if (login !== '') {
+                        reviewer_mention += `@${login} `;
                     }
                 }
-                const comment = "Please review this pull request to reduce the P50 code review latency for this multiproduct.";
-                core.info(`Overall p50 CRL:  ${crl_p50}`);
+                const comment = `Hi ${reviewer_mention}
+  
+@${(_b = pr.user) === null || _b === void 0 ? void 0 : _b.login} opened this PR ${age_hours} business hours ago, and the P50 code review latency for this MP is ${crl_hours} business hours. If you are able, review this code now to help reduce this multiproduct's Code Review Latency!
+
+Beep Boop Beep,
+GitHub PR Reminder Bot`;
                 core.info(`Time since creation: ${age_seconds}`);
-                const list_params = { owner: owner, repo: repo, issue_number: pr.number };
+                const list_params = { owner, repo, issue_number: pr.number };
                 octokit.rest.issues.listComments(list_params).then(comments => {
-                    const index = comments.data.findIndex(comments => { var _a; return (_a = comments.body) === null || _a === void 0 ? void 0 : _a.includes(comment); });
+                    const index = comments.data.findIndex(comments => { var _a; return (_a = comments.body) === null || _a === void 0 ? void 0 : _a.includes("GitHub PR Reminder Bot"); });
                     if (index === -1) {
                         core.info(`Needs reminder`);
-                        if (age_seconds >= crl_p50 - reminder_seconds) {
+                        if (age_seconds >= crl_p50 - reminder_seconds && age_seconds < crl_p50) {
                             //comment when time since creation is within reminder time of the p50 crl
-                            const create_params = { owner: owner, repo: repo, issue_number: pr.number, body: (reviewer_mention + comment) };
+                            const create_params = {
+                                owner: owner,
+                                repo: repo,
+                                issue_number: pr.number,
+                                body: comment
+                            };
                             octokit.rest.issues.createComment(create_params);
                         }
                     }
                 });
-            });
+            }
         }
         catch (error) {
             if (error instanceof Error)
