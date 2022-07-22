@@ -1,0 +1,85 @@
+name: 'Sample GitHub Workflow for "GitHub Pull Request Reminder" action'
+on:
+  schedule:
+    # "The shortest interval you can run scheduled workflows is once every 5 minutes."
+    #   From Docs: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
+    - cron: "*/15 * * * *" # run every 15 minutes
+
+  pull_request:
+    # Trigger the workflow on PR close so that we can write a summary.
+    types: [ closed ]
+
+  workflow_dispatch:
+
+jobs:
+  smart_pr_reminder:
+    name: "Smart PR Reminder"
+    runs-on: ubuntu-latest
+    steps:
+
+      ##
+      #
+      # Below are three different configuration options with associated examples:
+      #
+      #     1) Data can be fetched from a remote API
+      #     2) Data can be pulled from a repository
+      #     3) Data can be hard-coded in the workflow
+      #
+      ##
+
+#      ######################################################
+#      ##  Option #1: Data can be fetched from a remote API
+#      ######################################################
+#      - name: Fetch Data
+#        shell: bash
+#        run: |
+#          curl -s https://chriscarini.com/developer_insights/data.json?project=our-test-project | jq . | tee data.json
+
+#      ######################################################
+#      ##  Option #2: Data can be pulled from a repository
+#      ######################################################
+#      - name: Fetch Data
+#        uses: actions/checkout@v3
+#
+#      - name: Move data JSON to expected location
+#        shell: bash
+#        run: |
+#          mv out-test-project/dev_stats/dev_data.json data.json
+
+
+      #######################################################
+      ##  Option #3: Data can be hard-coded in the workflow
+      #######################################################
+      - name: Create Data JSON in expected location
+        shell: bash
+        run: |
+          cat <<EOF | jq . | tee data.json
+          {
+            "metrics": {
+              "Code Review Latency": {
+                "P50": { "Small": 60, "Medium": 120, "Large": 180, "X-Large": 240, "Overall": 900},
+                "P90": { "Small": 120, "Medium": 240, "Large": 360, "X-Large": 480, "Overall": 1200 }
+              },
+              "Time to Approval": {
+                "P50": { "Small": 60, "Medium": 120, "Large": 180, "X-Large": 240, "Overall": 900},
+                "P90": { "Small": 120, "Medium": 240, "Large": 360, "X-Large": 480, "Overall": 1200 }
+              },
+              "Time to Merge": {
+                "P50": { "Small": 60, "Medium": 120, "Large": 180, "X-Large": 240, "Overall": 900},
+                "P90": { "Small": 120, "Medium": 240, "Large": 360, "X-Large": 480, "Overall": 1200 }
+              }
+            },
+            "thresholds": [
+              { "name": "Small", "threshold": 15 },
+              { "name": "Medium", "threshold": 100 },
+              { "name": "Large", "threshold": 500 },
+              { "name": "X-Large", "threshold": -1 }
+            ]
+          }
+          EOF
+
+      - name: PR Reminder & Summary
+        uses: ChrisCarini/github-pull-request-reminder@main
+        with:
+          smartPrReminders: true
+          prStatsSummary: true
