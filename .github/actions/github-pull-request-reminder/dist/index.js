@@ -13289,8 +13289,7 @@ function pullRequests(repoOwner, repoName) {
 }
 function getMetrics() {
     return __awaiter(this, void 0, void 0, function* () {
-        const url = './data.json';
-        const response = yield (0, node_fetch_1.default)(url);
+        const response = yield (0, node_fetch_1.default)('./data.json');
         const result = (yield response.json());
         return result;
     });

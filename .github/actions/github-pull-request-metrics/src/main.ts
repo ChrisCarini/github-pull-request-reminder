@@ -19,8 +19,7 @@ async function closedPullRequests(repoOwner: string, repoName: string): Promise<
 }
 
 async function getMetrics(): Promise<any> {
-  const url = './data.json'
-  const response = await fetch(url)
+  const response = await fetch('./data.json')
   const result = (await response.json()) as any
   return result
 }
