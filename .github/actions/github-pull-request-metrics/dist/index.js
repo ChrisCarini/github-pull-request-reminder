@@ -13313,7 +13313,7 @@ function run() {
   
 Here is a summary of your pull request:
 
-Your pull request took ${age.toFixed(2)} hours to be merged. This is this ${percent_diff}% ${direction} than the P50 Time to Merge for this multiproduct.
+Your pull request took ${age.toFixed(2)} hours to be merged. This is ${percent_diff}% ${direction} than the P50 Time to Merge for this multiproduct.
 
 Beep Boop Beep,
 GitHub PR Metrics Bot`;
