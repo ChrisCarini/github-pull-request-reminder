@@ -46,10 +46,19 @@ const debug = (msg) => {
 const toHrs = (num) => (num / 3600).toFixed(2)
 const txt_c = () => 'text-align: center;'
 
+const GITHUB_STATS_MARKER = 'GITHUB_STATS_MARKER'
+
 function loadDeveloperInsights() {
   'use strict'
 
   console.log('GitHub PR Stats starting...')
+
+  // Check if marker exists, if so, exit.
+  const marker = document.querySelectorAll(`#${GITHUB_STATS_MARKER}`)
+  if (marker.length !== 0) {
+    console.log(`GitHub Stats already exists on page. Exiting.`)
+    return
+  }
 
   const og_url = document.querySelectorAll('[property="og:url"]')[0].content
   let og_url_parts = og_url.split('/')
@@ -146,6 +155,9 @@ function loadDeveloperInsights() {
         yValuesHashMapP90.set(index, yValuesP90)
         overviewP90HashMap.set(index, toHrs(stats['P90']['Overall']))
       })
+
+      // Add a marker element intented for checking if GitHub Stats is shown...
+      ourHtml += `<div id="${GITHUB_STATS_MARKER}"></div>`
 
       // Add our element into the GitHub DOM
       let theirThing = document.getElementById('partial-discussion-sidebar')
@@ -272,8 +284,35 @@ function loadDeveloperInsights() {
   console.log('GitHub PR Stats completed.')
 }
 
-window.addEventListener('load', loadDeveloperInsights)
 
+function firstLoad() {
+  setTimeout(function() {
+    console.log('Adding mutation observer...')
+    const callback = function(mutationList, observer) {
+      console.log('MUTATIONS FOUND!!!!')
+      loadDeveloperInsights()
+    }
+    // GitHub.com - PR page - sidebar
+    //      *AND*
+    // GitHub.com - Repo Page
+    let target = document.querySelectorAll('.Layout-sidebar')
+    if (target.length === 0) {
+      // GHE.com  - PR page - sidebar + 'conversations' area
+      target = document.querySelectorAll('#discussion_bucket')
+    }
+    if (target.length === 0) {
+      // GHE.com - Repo Page
+      target = document.querySelectorAll('#repo-content-pjax-container')
+    }
+    console.log(target)
+    new MutationObserver(callback).observe(target[0], {attributes: true, childList: true, subtree: true})
+  }, 2000) // How long you want the delay to be, measured in milliseconds.
+
+  loadDeveloperInsights()
+  console.log(" ######################### END -----------------------------")
+}
+
+window.addEventListener('load', firstLoad)
 
 /* ################################################################################################################# */
 /* ####  BELOW IS Chart.js v3.8.0 TAKEN FROM https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.0/chart.min.js  ### */
