@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import fetch from 'node-fetch'
 import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
+import * as fs from 'fs'
 
 const myToken = core.getInput('GITHUB_TOKEN')
 const octokit = github.getOctokit(myToken)
@@ -19,8 +19,8 @@ async function closedPullRequests(repoOwner: string, repoName: string): Promise<
 }
 
 async function getMetrics(): Promise<any> {
-  const response = await fetch('./data.json')
-  const result = (await response.json()) as any
+  const response = fs.readFileSync('./data.json', 'utf-8')
+  const result = JSON.parse(response) as any
   return result
 }
 
