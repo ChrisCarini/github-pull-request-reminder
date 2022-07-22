@@ -28,7 +28,7 @@ async function run(): Promise<void> {
 
         const merged_time = new Date(pr.merged_at)
         const creation_time = new Date(pr.created_at)
-        const age = (merged_time.getTime() - creation_time.getTime()) / (3600 * 1000)
+        const age = ((merged_time.getTime() - creation_time.getTime()) / (3600 * 1000)).toFixed(2)
 
         const comment = `Hi @${pr.user?.login}
   

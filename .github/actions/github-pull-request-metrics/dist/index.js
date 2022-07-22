@@ -9017,7 +9017,7 @@ function run() {
                 if (pr.merged_at) {
                     const merged_time = new Date(pr.merged_at);
                     const creation_time = new Date(pr.created_at);
-                    const age = (merged_time.getTime() - creation_time.getTime()) / (3600 * 1000);
+                    const age = ((merged_time.getTime() - creation_time.getTime()) / (3600 * 1000)).toFixed(2);
                     const comment = `Hi @${(_a = pr.user) === null || _a === void 0 ? void 0 : _a.login}
   
 Here is a summary of your pull request:
