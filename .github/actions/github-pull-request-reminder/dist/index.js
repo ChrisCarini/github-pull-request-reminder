@@ -13330,7 +13330,7 @@ function run() {
                 }
                 const comment = `Hi ${reviewer_mention}
   
-@${(_b = pr.user) === null || _b === void 0 ? void 0 : _b.login} opened this PR ${age_hours} business hours ago, and the P50 code review latency for this MP is ${crl_hours} business hours. If you are able, review this code now to help reduce this multiproduct's Code Review Latency!
+@${(_b = pr.user) === null || _b === void 0 ? void 0 : _b.login} opened this PR ${age_hours.toFixed(2)} business hours ago, and the P50 code review latency for this MP is ${crl_hours.toFixed(2)} business hours. If you are able, review this code now to help reduce this multiproduct's Code Review Latency!
 
 Beep Boop Beep,
 GitHub PR Reminder Bot`;
