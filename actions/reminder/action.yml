@@ -1,15 +1,18 @@
 name: 'GitHub Pull Request Reminder'
 description: 'Provide reminders to reviewers of PRs in a smart fashion.'
+
 author: 'Ankur Mehta, Chris Carini, and Sulabh Bansal'
+
+branding:
+  icon: bell
+  color: blue
+
 inputs:
-  milliseconds: # change this
-    required: true
-    description: 'input description here'
-    default: 'default value if applicable'
   GITHUB_TOKEN:
     description: 'Default to {{ github.token }}. This is the default GitHub token available to actions and is used to run the action and to post the comments on PRs. The default token permissions (https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) work fine.'
     default: '${{ github.token }}'
     required: false
+
 runs:
   using: 'node16'
-  main: 'dist/index.js'
+  main: '../../dist/reminder/index.js'
