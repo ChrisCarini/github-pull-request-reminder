@@ -18,6 +18,13 @@ async function closedPullRequests(repoOwner: string, repoName: string): Promise<
   })
 }
 
+async function getMetrics(): Promise<any> {
+  const url = 'https://chriscarini.com/developer_insights/data.json'
+  const response = await fetch(url)
+  const result = (await response.json()) as any
+  return result
+}
+
 async function run(): Promise<void> {
   try {
     const allClosedPrs = await closedPullRequests(owner, repo)
@@ -28,13 +35,18 @@ async function run(): Promise<void> {
 
         const merged_time = new Date(pr.merged_at)
         const creation_time = new Date(pr.created_at)
-        const age = ((merged_time.getTime() - creation_time.getTime()) / (3600 * 1000)).toFixed(2)
+        const age_seconds = (merged_time.getTime() - creation_time.getTime()) / 1000
+        const age = age_seconds / 3600
+        const api_response = await getMetrics()
+        const ttm_p50 = api_response.metrics['Time to Merge'].P50.Overall
+        const percent_diff = (100 * Math.abs((age - ttm_p50) / ttm_p50)).toFixed(2)
+        const direction =  age_seconds > ttm_p50 ? "higher" : "lower"
 
         const comment = `Hi @${pr.user?.login}
   
 Here is a summary of your pull request:
 
-Your pull request took ${age} hours to be merged.
+Your pull request took ${age.toFixed(2)} hours to be merged. This is this ${percent_diff}% ${direction} than the P50 Time to Merge for this multiproduct.
 
 Beep Boop Beep,
 GitHub PR Metrics Bot`
