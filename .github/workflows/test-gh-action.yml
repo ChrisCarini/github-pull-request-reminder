@@ -18,6 +18,11 @@ jobs:
         run: |
           curl -s https://chriscarini.com/developer_insights/data.json?project=our-test-project | jq . | tee data.json
 
+      - name: Debug
+        shell: bash
+        run: |
+          pwd && ls -lash
+
       - uses: ./.github/actions/github-pull-request-reminder
 #        with:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
