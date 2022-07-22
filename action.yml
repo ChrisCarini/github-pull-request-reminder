@@ -1,0 +1,46 @@
+name: 'GitHub Pull Request Reminder'
+description: 'Provide reminders to reviewers of PRs in a smart fashion.'
+
+author: 'Ankur Mehta, Chris Carini, and Sulabh Bansal'
+
+branding:
+  icon: bell
+  color: blue
+
+inputs:
+  smartPrReminders:
+    description: 'If "true", the action will remind reviewers at a smart point.'
+    default: "true"
+    required: false
+  prStatsSummary:
+    description: 'If "true", the action will add a comment upon closing of the PR with some PR stats.'
+    default: "true"
+    required: false
+  GITHUB_TOKEN:
+    description: 'Default to {{ github.token }}. This is the default GitHub token available to actions and is used to run the action and to post the comments on PRs. The default token permissions (https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) work fine.'
+    default: '${{ github.token }}'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Smart Remind
+      uses: ChrisCarini/github-pull-request-reminder/actions/reminder@main
+      if: ${{ inputs.smartPrReminders == 'true' }}
+      with:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+
+    - name: PR Summary
+      uses: ChrisCarini/github-pull-request-reminder/actions/summary@main
+      # This step will only be run if the below criteria are *ALL* met:
+      #     1) The action is configured by the user to run (via `prStatsSummary`)
+      #     2) The event name is `pull_request`
+      #     3) The event type is `closed`
+      #     4) The PR is merged
+      if: |
+        inputs.prStatsSummary == 'true' && 
+        github.event_name == 'pull_request' && 
+        github.event.action == 'closed' && 
+        github.event.pull_request.merged == true
+      with:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
