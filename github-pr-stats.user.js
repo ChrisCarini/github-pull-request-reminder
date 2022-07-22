@@ -139,7 +139,7 @@ function loadDeveloperInsights() {
             <tr style='${txt_c()}'><td>${toHrs(stats['P50']['Medium'])}</td><th style='color:${DARK_BLUE};'>Medium</th><td>${toHrs(stats['P90']['Medium'])}</td></tr>
             <tr style='${txt_c()}'><td>${toHrs(stats['P50']['Large'])}</td><th style='color:${DARK_ORANGE};'>Large</th><td>${toHrs(stats['P90']['Large'])}</td></tr>
             <tr style='${txt_c()}'><td>${toHrs(stats['P50']['X-Large'])}</td><th style='color:${DARK_RED};'>XL</th><td>${toHrs(stats['P90']['X-Large'])}</td></tr>
-          </table></details></details></div>`
+          </table><a href="https://tableau.linkedin.biz/#/views/GitHubInsights/README?:iid=1">See More</a></details></details></div>`
 
         // Add data to array for
         yValuesP50.push(toHrs(stats['P50']['Small']))
