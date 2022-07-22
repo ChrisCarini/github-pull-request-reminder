@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import fetch from 'node-fetch'
 import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
+import fs from 'fs'
 
 const myToken = core.getInput('GITHUB_TOKEN')
 const octokit = github.getOctokit(myToken)
@@ -21,8 +21,8 @@ async function pullRequests(repoOwner: string, repoName: string): Promise<RestEn
 }
 
 async function getMetrics(): Promise<any> {
-  const response = await fetch('./data.json')
-  const result = (await response.json()) as any
+  const response = fs.readFileSync('./data.json', 'utf-8')
+  const result = JSON.parse(response) as any
   return result
 }
 
@@ -37,10 +37,10 @@ async function run(): Promise<void> {
 
       const reviewerLogins: string = pr.requested_reviewers
         ? pr.requested_reviewers
-            .map(reviewer => {
-              return reviewer.login
-            })
-            .join(', ')
+          .map(reviewer => {
+            return reviewer.login
+          })
+          .join(', ')
         : ''
 
       core.info(`PR:   #${pr.number} by [${pr.user?.login}] - ${pr.title} (${pr.state})`)
@@ -72,7 +72,7 @@ GitHub PR Reminder Bot`
       core.info(`Time since creation: ${age_seconds}`)
       const list_params = {owner, repo, issue_number: pr.number}
       octokit.rest.issues.listComments(list_params).then(comments => {
-        const index = comments.data.findIndex(comments => comments.body?.includes("GitHub PR Reminder Bot"))
+        const index = comments.data.findIndex(comments => comments.body?.includes('GitHub PR Reminder Bot'))
         if (index === -1) {
           core.info(`Needs reminder`)
           if (age_seconds >= crl_p50 - reminder_seconds && age_seconds < crl_p50) {
