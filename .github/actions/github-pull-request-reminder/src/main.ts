@@ -48,7 +48,7 @@ async function run(): Promise<void> {
       core.info(`======================================================================`)
       core.info(`Link:       ${pr.html_url}`)
       core.info(`Created at: ${pr.created_at}`)
-      core.info(`Created at: ${pr.updated_at}`)
+      core.info(`Updated at: ${pr.updated_at}`)
       core.info(`Reviewers:  ${reviewerLogins}`)
 
       const current_time = new Date()
