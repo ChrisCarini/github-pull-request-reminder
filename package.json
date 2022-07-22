@@ -10,7 +10,9 @@
     "format": "prettier --write '**/*.ts'",
     "format-check": "prettier --check '**/*.ts'",
     "lint": "eslint src/**/*.ts",
-    "package": "ncc build --source-map --license licenses.txt",
+    "package": "npm run reminder:package && npm run summary:package",
+    "reminder:package": "ncc build src/reminder/main.ts --out dist/reminder --source-map --license licenses.txt",
+    "summary:package": "ncc build src/summary/main.ts --out dist/summary --source-map --license licenses.txt",
     "test": "jest",
     "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
   },
@@ -29,8 +31,7 @@
     "@actions/core": "^1.6.0",
     "@actions/github": "^5.0.3",
     "@actions/http-client": "^2.0.1",
-    "@octokit/rest": "^19.0.3",
-    "node-fetch": "^3.2.9"
+    "@octokit/rest": "^19.0.3"
   },
   "devDependencies": {
     "@types/node": "^18.0.6",
