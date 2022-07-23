@@ -50,18 +50,7 @@ const txt_c = () => 'text-align: center;'
 
 const GITHUB_STATS_MARKER = 'GITHUB_STATS_MARKER'
 
-function loadDeveloperInsights() {
-  'use strict'
-
-  console.log('GitHub PR Stats starting...')
-
-  // Check if marker exists, if so, exit.
-  const marker = document.querySelectorAll(`#${GITHUB_STATS_MARKER}`)
-  if (marker.length !== 0) {
-    console.log(`GitHub Stats already exists on page. Exiting.`)
-    return
-  }
-
+function get_project_name() {
   const og_url = document.querySelectorAll('[property="og:url"]')[0].content
   let og_url_parts = og_url.split('/')
 
@@ -83,7 +72,22 @@ function loadDeveloperInsights() {
     return
   }
 
-  const project = og_url_parts.at(repo_name_loc)
+  return og_url_parts.at(repo_name_loc)
+}
+
+function loadDeveloperInsights() {
+  'use strict'
+
+  console.log('GitHub PR Stats starting...')
+
+  // Check if marker exists, if so, exit.
+  const marker = document.querySelectorAll(`#${GITHUB_STATS_MARKER}`)
+  if (marker.length !== 0) {
+    console.log(`GitHub Stats already exists on page. Exiting.`)
+    return
+  }
+
+  const project = get_project_name()
 
   const request_url = `${BASE_DATA_URL}?t=${Date.now()}&project=${project}`
 
@@ -95,6 +99,10 @@ function loadDeveloperInsights() {
 
       const metrics = data.metrics
       debug(metrics)
+      if (Object.keys(metrics).length === 0) {
+        debug(`There are no keys in the 'metrics' object of the API call - exiting.`)
+        return
+      }
 
       // Create element for us to use
       let ourHtml = `<h4 style='padding-bottom: 10px;'><b>Code Review Metrics (biz hrs)</b></h4></div>`
@@ -140,7 +148,7 @@ function loadDeveloperInsights() {
             <tr style='${txt_c()}'><td>${toHrs(stats['P50']['Medium'])}</td><th style='color:${DARK_BLUE};'>Medium</th><td>${toHrs(stats['P90']['Medium'])}</td></tr>
             <tr style='${txt_c()}'><td>${toHrs(stats['P50']['Large'])}</td><th style='color:${DARK_ORANGE};'>Large</th><td>${toHrs(stats['P90']['Large'])}</td></tr>
             <tr style='${txt_c()}'><td>${toHrs(stats['P50']['X-Large'])}</td><th style='color:${DARK_RED};'>XL</th><td>${toHrs(stats['P90']['X-Large'])}</td></tr>
-          </table><a href='https://tableau.linkedin.biz/#/views/GitHubInsights/README?:iid=1'>See More</a></details></details></div>`
+          </table><a href='https://tableau.linkedin.biz/#/views/GitHubInsights/CodeCollab?Repository=${project}'>See detailed dashboard</a></details></details></div>`
 
         // Add data to array for
         yValuesP50.push(toHrs(stats['P50']['Small']))
@@ -158,7 +166,7 @@ function loadDeveloperInsights() {
         overviewP90HashMap.set(index, toHrs(stats['P90']['Overall']))
       })
 
-      // Add a marker element intented for checking if GitHub Stats is shown...
+      // Add a marker element intended for checking if GitHub Stats is shown...
       ourHtml += `<div id='${GITHUB_STATS_MARKER}'></div>`
 
       // Add our element into the GitHub DOM
