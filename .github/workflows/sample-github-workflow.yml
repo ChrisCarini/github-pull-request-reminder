@@ -3,7 +3,7 @@ on:
   schedule:
     # "The shortest interval you can run scheduled workflows is once every 5 minutes."
     #   From Docs: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
-    - cron: "*/5 * * * *" # run every 5 minutes
+    - cron: "*/15 * * * *" # run every 15 minutes
 
   pull_request:
     # Trigger the workflow on PR close so that we can write a summary.

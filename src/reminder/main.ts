@@ -7,7 +7,7 @@ const octokit = github.getOctokit(myToken)
 
 const owner: string = github.context.repo.owner
 const repo: string = github.context.repo.repo
-const reminder_seconds = 5 * 60
+const reminder_seconds = 14 * 60
 const seconds_in_hour = 3600
 
 async function run(): Promise<void> {
