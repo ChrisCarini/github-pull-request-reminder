@@ -5,7 +5,7 @@ export interface MetricsData {
   thresholds: Threshold[];
 }
 
-interface Metrics {
+export interface Metrics {
   'Code Review Latency': Percentiles;
   'Time to Approval': Percentiles;
   'Time to Merge': Percentiles;
