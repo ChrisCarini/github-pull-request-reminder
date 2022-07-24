@@ -8871,23 +8871,45 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
+function getPrNumber() {
+    core.info(JSON.stringify(github.context.payload));
+    const pullRequest = github.context.payload.pull_request;
+    if (!pullRequest) {
+        return undefined;
+    }
+    return pullRequest.number;
+}
+function addLabels(client, prNumber, labels) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield client.rest.issues.addLabels({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            issue_number: prNumber,
+            labels: labels
+        });
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const token = core.getInput('GITHUB_TOKEN', { required: true });
+            core.info('Getting PR number from context...');
             const prNumber = getPrNumber();
             if (!prNumber) {
-                console.log('Could not get pull request number from context, exiting');
+                core.error('Could not get pull request number from context, exiting');
                 return;
             }
             const client = github.getOctokit(token);
+            const owner = github.context.repo.owner;
+            const repo = github.context.repo.repo;
+            core.info(`Get repo labels for [ ${owner} / ${repo} ]...`);
             const repoLabels = client.rest.issues.listLabelsForRepo({
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo
+                owner: owner,
+                repo: repo
             });
+            core.info('Labels:');
             core.info(JSON.stringify(repoLabels));
             return;
             // const {data: pullRequest} = await client.rest.pulls.get({
@@ -8922,24 +8944,7 @@ function run() {
         }
     });
 }
-exports.run = run;
-function getPrNumber() {
-    const pullRequest = github.context.payload.pull_request;
-    if (!pullRequest) {
-        return undefined;
-    }
-    return pullRequest.number;
-}
-function addLabels(client, prNumber, labels) {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield client.rest.issues.addLabels({
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
-            issue_number: prNumber,
-            labels: labels
-        });
-    });
-}
+run();
 
 
 /***/ }),
