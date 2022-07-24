@@ -8975,8 +8975,10 @@ function run() {
                     let approve_blurb = "";
                     const review_params = { owner, repo, pull_number: pr.number };
                     octokit.rest.pulls.listReviews(review_params).then(reviews => {
-                        core.info(`Reviews: ${reviews}`);
+                        core.info(`Reviews: ${reviews.data}`);
+                        core.info(`JSON: ${JSON.stringify(reviews, null, 2)}`);
                         const approve = reviews.data.find(review => review.state === "APPROVED");
+                        core.info(`Approval: ${approve}`);
                         if (approve && approve.submitted_at) {
                             const approve_time = new Date(approve.submitted_at);
                             const approve_age_seconds = (approve_time.getTime() - creation_time.getTime()) / 1000;
