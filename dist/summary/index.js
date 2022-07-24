@@ -8875,7 +8875,8 @@ function pullRequests(octokit, repoOwner, repoName, state) {
             owner: repoOwner,
             repo: repoName,
             state,
-            sort: 'created'
+            sort: 'created',
+            direction: 'desc'
         });
     });
 }
@@ -8978,7 +8979,7 @@ function run() {
                 core.info(`PR #${pr.number} - Processing...`);
                 core.debug(`PR: ${JSON.stringify(pr, null, 2)}`);
                 if (!pr.merged_at) {
-                    core.info(`PR #${pr.number} does not have 'merged_at' set; still open. Continuing to next PR...`);
+                    core.info(`PR #${pr.number} does not have 'merged_at' set; closed no merge. Continuing to next PR...`);
                     continue;
                 }
                 const { data: prComments } = yield octokit.rest.issues.listComments({

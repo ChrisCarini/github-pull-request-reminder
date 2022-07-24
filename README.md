@@ -21,9 +21,3 @@ npm run build && npm run package
 ```shell
 npm test
 ```
-
-
-
-
-
-Sample 28 line addition For Demo
