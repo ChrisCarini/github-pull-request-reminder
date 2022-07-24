@@ -9004,6 +9004,7 @@ GitHub PR Reminder Bot`;
                     const index = comments.data.findIndex(comment => { var _a; return (_a = comment.body) === null || _a === void 0 ? void 0 : _a.includes('GitHub PR Reminder Bot'); });
                     if (index !== -1) {
                         core.info(`PR #${pr.number} -- Does *NOT* need a reminder; one already exists.`);
+                        return;
                     }
                     core.info(`PR #${pr.number} -- Needs a reminder; ones does *NOT* exist yet.`);
                     const withinTimeBound = age_seconds >= crl_p50 - reminder_seconds && age_seconds < crl_p50;
