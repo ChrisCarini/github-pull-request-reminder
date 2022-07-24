@@ -8969,13 +8969,28 @@ function run() {
                     const age = age_seconds / 3600;
                     const data = (0, lib_1.getMetrics)();
                     const ttm_p50 = data.metrics['Time to Merge'].P50.Overall;
-                    const percent_diff = (100 * Math.abs((age - ttm_p50) / ttm_p50)).toFixed(2);
-                    const direction = age_seconds > ttm_p50 ? 'higher' : 'lower';
+                    const tta_p50 = data.metrics['Time to Approval'].P50.Overall;
+                    const merge_percent_diff = (100 * Math.abs((age_seconds - ttm_p50) / ttm_p50)).toFixed(2);
+                    const merge_dir = age_seconds > ttm_p50 ? 'higher' : 'lower';
+                    let approve_blurb = "";
+                    const review_params = { owner, repo, pull_number: pr.number };
+                    octokit.rest.pulls.listReviews(review_params).then(reviews => {
+                        const approve = reviews.data.find(review => review.state === "APPROVED");
+                        if (approve && approve.submitted_at) {
+                            const approve_time = new Date(approve.submitted_at);
+                            const approve_age_seconds = (approve_time.getTime() - creation_time.getTime()) / 1000;
+                            const approve_age = approve_age_seconds / 3600;
+                            const approve_percent_diff = (100 * Math.abs((approve_age_seconds - tta_p50) / tta_p50)).toFixed(2);
+                            const approve_dir = approve_age_seconds > tta_p50 ? 'higher' : 'lower';
+                            approve_blurb = `Your pull request took ${approve_age.toFixed(2)} hours to be merged. This is ${approve_percent_diff}% ${approve_dir} than the P50 Time to Merge for this multiproduct.`;
+                        }
+                    });
                     const commentText = `Hi @${(_a = pr.user) === null || _a === void 0 ? void 0 : _a.login}
   
 Here is a summary of your pull request:
 
-Your pull request took ${age.toFixed(2)} hours to be merged. This is ${percent_diff}% ${direction} than the P50 Time to Merge for this multiproduct.
+Your pull request took ${age.toFixed(2)} hours to be merged. This is ${merge_percent_diff}% ${merge_dir} than the P50 Time to Merge for this multiproduct.
+${approve_blurb}
 
 Beep Boop Beep,
 GitHub PR Metrics Bot`;
