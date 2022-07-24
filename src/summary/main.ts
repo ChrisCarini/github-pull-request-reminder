@@ -46,8 +46,14 @@ async function run(): Promise<void> {
   
 Here is a summary of your pull request:
 
+<details open>
+<summary>Time to Merge</summary>
 Your pull request took ${age.toFixed(2)} hours to be merged. This is ${merge_percent_diff}% ${merge_dir} than the P50 Time to Merge for this multiproduct.
+</details
+<details open>
+<summary>Time to Approval</summary>
 ${approve_blurb}
+</details
 
 Beep Boop Beep,
 GitHub PR Metrics Bot`
