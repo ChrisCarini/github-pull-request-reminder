@@ -11,6 +11,7 @@ export async function pullRequests(
     owner: repoOwner,
     repo: repoName,
     state,
-    sort: 'created'
+    sort: 'created',
+    direction: 'desc'
   })
 }
