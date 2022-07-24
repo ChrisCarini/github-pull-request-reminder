@@ -12,6 +12,10 @@ inputs:
     description: 'If "true", the action will remind reviewers at a smart point.'
     default: "true"
     required: false
+  prSizeLabel:
+    description: 'If "true", the action will add a label of the PR size (at PR open) to the PR.'
+    default: "true"
+    required: false
   prStatsSummary:
     description: 'If "true", the action will add a comment upon closing of the PR with some PR stats.'
     default: "true"
@@ -27,6 +31,19 @@ runs:
     - name: Smart Remind
       uses: ChrisCarini/github-pull-request-reminder/actions/reminder@main
       if: ${{ inputs.smartPrReminders == 'true' }}
+      with:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+
+    - name: Code Size Label
+      uses: ChrisCarini/github-pull-request-reminder/actions/labeler@main
+      # This step will only be run if the below criteria are *ALL* met:
+      #     1) The action is configured by the user to run (via `prSizeLabel`)
+      #     2) The event name is `pull_request`
+      #     3) The event type is `opened`
+      if: |
+        inputs.prSizeLabel == 'true' && 
+        github.event_name == 'pull_request' && 
+        github.event.action == 'opened'
       with:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
 
