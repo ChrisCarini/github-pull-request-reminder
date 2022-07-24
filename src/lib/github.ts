@@ -1,5 +1,6 @@
 import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
 import {GitHub} from '@actions/github/lib/utils'
+import * as github from '@actions/github'
 
 export async function pullRequests(
   octokit: InstanceType<typeof GitHub>,
@@ -14,4 +15,13 @@ export async function pullRequests(
     sort: 'created',
     direction: 'desc'
   })
+}
+
+export function getPrNumber(): number | undefined {
+  const pullRequest = github.context.payload.pull_request
+  if (!pullRequest) {
+    return undefined
+  }
+
+  return pullRequest.number
 }

@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {getMetrics, Metrics, pullRequests} from '../lib'
+import {getMetrics, getPrNumber, Metrics} from '../lib'
 
 type ClientType = ReturnType<typeof github.getOctokit>;
 
@@ -28,44 +28,54 @@ Your pull request took ${age.toFixed(2)} hours to be ${action}. This is ${percen
 
 async function run(): Promise<void> {
   try {
-    const allClosedPrs = await pullRequests(octokit, owner, repo, 'closed')
-    for (const pr of allClosedPrs.data) {
-      core.info(`PR #${pr.number} - Processing...`)
-      core.debug(`PR: ${JSON.stringify(pr, null, 2)}`)
+    const prNumber = getPrNumber()
 
-      if (!pr.merged_at) {
-        core.info(`PR #${pr.number} does not have 'merged_at' set; closed no merge. Continuing to next PR...`)
-        continue
-      }
+    if (!prNumber) {
+      core.error('Could not get pull request number from context, exiting')
+      return
+    }
 
-      const {data: prComments} = await octokit.rest.issues.listComments({
-        owner,
-        repo,
-        issue_number: pr.number
-      })
-      core.debug(`PR #${pr.number} - Comments: ${JSON.stringify(prComments, null, 2)}`)
-      const index = prComments.findIndex(comment => comment.body?.includes('GitHub PR Metrics Bot'))
-      if (index !== -1) {
-        core.info(`PR #${pr.number} already has a comment from GitHub PR Metrics Bot. Continuing to next PR...`)
-        continue
-      }
+    core.info(`PR #${prNumber} - Get PR Info...`)
+    const {data: pr} = await octokit.rest.pulls.get({
+      owner: 'octokit',
+      repo: 'rest.js',
+      pull_number: prNumber
+    })
 
-      core.info(`PR #${pr.number} - Generating comment text...`)
+    core.info(`PR #${prNumber} - Processing...`)
+    if (!pr.merged_at) {
+      core.info(`PR #${prNumber} does not have 'merged_at' set; closed no merge. Continuing to next PR...`)
+      return
+    }
 
-      const merge_blurb = generateCommentText('Time to Merge', 'merged', pr.merged_at, pr.created_at)
+    const {data: prComments} = await octokit.rest.issues.listComments({
+      owner,
+      repo,
+      issue_number: prNumber
+    })
+    core.debug(`PR #${prNumber} - Comments: ${JSON.stringify(prComments, null, 2)}`)
+    const index = prComments.findIndex(comment => comment.body?.includes('GitHub PR Metrics Bot'))
+    if (index !== -1) {
+      core.info(`PR #${prNumber} already has a comment from GitHub PR Metrics Bot. Continuing to next PR...`)
+      return
+    }
 
-      // Identify if the PR was approved, and if so, generate text for associated approval information.
-      const {data: prReviews} = await octokit.rest.pulls.listReviews({
-        owner,
-        repo,
-        pull_number: pr.number
-      })
-      core.debug(`PR #${pr.number} - Reviews: ${JSON.stringify(prReviews, null, 2)}`)
-      const approve = prReviews.find(review => review.state === 'APPROVED')
-      const approve_blurb = !(approve && approve.submitted_at) ? '' :
-        generateCommentText('Time to Approval', 'approved', approve.submitted_at, pr.created_at)
+    core.info(`PR #${prNumber} - Generating comment text...`)
 
-      const commentText = `Hi @${pr.user?.login}
+    const merge_blurb = generateCommentText('Time to Merge', 'merged', pr.merged_at, pr.created_at)
+
+    // Identify if the PR was approved, and if so, generate text for associated approval information.
+    const {data: prReviews} = await octokit.rest.pulls.listReviews({
+      owner,
+      repo,
+      pull_number: prNumber
+    })
+    core.debug(`PR #${prNumber} - Reviews: ${JSON.stringify(prReviews, null, 2)}`)
+    const approve = prReviews.find(review => review.state === 'APPROVED')
+    const approve_blurb = !(approve && approve.submitted_at) ? '' :
+      generateCommentText('Time to Approval', 'approved', approve.submitted_at, pr.created_at)
+
+    const commentText = `Hi @${pr.user?.login}
 
 Here is a summary of your pull request:
 
@@ -76,14 +86,14 @@ ${approve_blurb}
 Beep Boop Beep,
 GitHub PR Metrics Bot`
 
-      await octokit.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: pr.number,
-        body: commentText
-      })
-    }
-  } catch (error) {
+    await octokit.rest.issues.createComment({
+      owner,
+      repo,
+      issue_number: prNumber,
+      body: commentText
+    })
+  } catch
+    (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
 }
