@@ -65,6 +65,7 @@ GitHub PR Reminder Bot`
         const index = comments.data.findIndex(comment => comment.body?.includes('GitHub PR Reminder Bot'))
         if (index !== -1) {
           core.info(`PR #${pr.number} -- Does *NOT* need a reminder; one already exists.`)
+          return
         }
 
         core.info(`PR #${pr.number} -- Needs a reminder; ones does *NOT* exist yet.`)
