@@ -17,6 +17,7 @@ async function run(): Promise<void> {
       core.debug(`PR: ${JSON.stringify(pr, null, 2)}`)
 
       if (pr.merged_at) {
+        core.info(`needs summary`)
         const merged_time = new Date(pr.merged_at)
         const creation_time = new Date(pr.created_at)
         const age_seconds = (merged_time.getTime() - creation_time.getTime()) / 1000
@@ -31,9 +32,9 @@ async function run(): Promise<void> {
 
         const review_params = {owner, repo, pull_number: pr.number}
         octokit.rest.pulls.listReviews(review_params).then(reviews => {
-          core.info(`Reviews: ${reviews}`)
           const approve = reviews.data.find(review => review.state === "APPROVED")
           if(approve && approve.submitted_at) {
+            core.info(`needs time to approve`)
             const approve_time = new Date(approve.submitted_at)
             const approve_age_seconds = (approve_time.getTime() - creation_time.getTime()) / 1000
             const approve_age = approve_age_seconds / 3600
@@ -56,6 +57,7 @@ GitHub PR Metrics Bot`
         octokit.rest.issues.listComments(list_params).then(comments => {
           const index = comments.data.findIndex(comment => comment.body?.includes('GitHub PR Metrics Bot'))
           if (index === -1) {
+            core.info(`needs comment`)
             const create_params = {
               owner,
               repo,
