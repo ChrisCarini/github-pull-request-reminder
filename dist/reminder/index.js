@@ -8875,7 +8875,8 @@ function pullRequests(octokit, repoOwner, repoName, state) {
             owner: repoOwner,
             repo: repoName,
             state,
-            sort: 'created'
+            sort: 'created',
+            direction: 'asc'
         });
     });
 }
