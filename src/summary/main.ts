@@ -34,7 +34,7 @@ async function run(): Promise<void> {
       core.debug(`PR: ${JSON.stringify(pr, null, 2)}`)
 
       if (!pr.merged_at) {
-        core.info(`PR #${pr.number} does not have 'merged_at' set; still open. Continuing to next PR...`)
+        core.info(`PR #${pr.number} does not have 'merged_at' set; closed no merge. Continuing to next PR...`)
         continue
       }
 
