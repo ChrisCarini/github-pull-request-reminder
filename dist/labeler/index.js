@@ -8884,10 +8884,14 @@ function run() {
                 return;
             }
             const client = github.getOctokit(token);
+            const owner = github.context.repo.owner;
+            const repo = github.context.repo.repo;
+            core.info(`Get repo labels for [ ${owner} / ${repo} ]...`);
             const repoLabels = client.rest.issues.listLabelsForRepo({
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo
+                owner: owner,
+                repo: repo
             });
+            core.info('Labels:');
             core.info(JSON.stringify(repoLabels));
             return;
             // const {data: pullRequest} = await client.rest.pulls.get({
