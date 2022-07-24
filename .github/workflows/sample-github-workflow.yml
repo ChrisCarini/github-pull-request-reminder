@@ -12,8 +12,10 @@ on:
     - cron: "*/15 * * * *" # run every 15 minutes
 
   pull_request:
-    # Trigger the workflow on PR close so that we can write a summary.
-    types: [ closed ]
+    # Trigger the workflow on:
+    #   1) PR open so that we can label PRs based on their size.
+    #   2) PR close so that we can write a summary.
+    types: [ opened, closed ]
 
   workflow_dispatch:
 
@@ -88,4 +90,5 @@ jobs:
         uses: ChrisCarini/github-pull-request-reminder@main
         with:
           smartPrReminders: true
+          prSizeLabel: true
           prStatsSummary: true
