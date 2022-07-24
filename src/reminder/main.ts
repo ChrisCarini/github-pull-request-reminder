@@ -2,8 +2,10 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {getMetrics, pullRequests} from '../lib'
 
+type ClientType = ReturnType<typeof github.getOctokit>;
+
 const myToken = core.getInput('GITHUB_TOKEN')
-const octokit = github.getOctokit(myToken)
+const octokit: ClientType = github.getOctokit(myToken)
 
 const owner: string = github.context.repo.owner
 const repo: string = github.context.repo.repo
