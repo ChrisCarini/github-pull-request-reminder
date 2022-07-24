@@ -36,7 +36,7 @@ async function run(): Promise<void> {
             const approve_age = approve_age_seconds / 3600
             const approve_percent_diff = (100 * Math.abs((approve_age_seconds - tta_p50) / tta_p50)).toFixed(2)
             const approve_dir = approve_age_seconds > tta_p50 ? 'higher' : 'lower'
-            approve_blurb = `Your pull request took ${approve_age.toFixed(2)} hours to be merged. This is ${approve_percent_diff}% ${approve_dir} than the P50 Time to Merge for this multiproduct.`
+            approve_blurb = `Your pull request took ${approve_age.toFixed(2)} hours to be merged. This is ${approve_percent_diff}% ${approve_dir} than the P50 Time to Approval for this multiproduct.`
           }
         })
         const commentText = `Hi @${pr.user?.login}
