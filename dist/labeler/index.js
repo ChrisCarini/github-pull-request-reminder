@@ -8871,59 +8871,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const token = core.getInput('GITHUB_TOKEN', { required: true });
-            const prNumber = getPrNumber();
-            if (!prNumber) {
-                console.log('Could not get pull request number from context, exiting');
-                return;
-            }
-            const client = github.getOctokit(token);
-            const repoLabels = client.rest.issues.listLabelsForRepo({
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo
-            });
-            core.info(JSON.stringify(repoLabels));
-            return;
-            // const {data: pullRequest} = await client.rest.pulls.get({
-            //   owner: github.context.repo.owner,
-            //   repo: github.context.repo.repo,
-            //   pull_number: prNumber
-            // })
-            //
-            // const additions = pullRequest.additions
-            // const deletions = pullRequest.deletions
-            // const changeSize = additions + deletions
-            // core.info(`PR #${prNumber} has ${changeSize} LoC change (${additions} additions; ${deletions} deletions)`)
-            //
-            // const metricsData = getMetrics()
-            //
-            // for (const threshold of metricsData.thresholds) {
-            //   const thresholdName = threshold.name
-            //   const thresholdLoc = threshold.threshold
-            //   core.debug(`${thresholdName}: ${thresholdLoc}`)
-            //   core.debug(`changeSize <= thresholdLoc ? :${changeSize <= thresholdLoc}`)
-            //   if (changeSize <= thresholdLoc) {
-            //     const label = `pr-size: ${thresholdName}`
-            //     core.info(`Adding ${label} to PR #${prNumber} and exiting.`)
-            //     await addLabels(client, prNumber, [label])
-            //     return
-            //   }
-            // }
-        }
-        catch (error) {
-            core.error(error);
-            core.setFailed(error.message);
-        }
-    });
-}
-exports.run = run;
+const lib_1 = __nccwpck_require__(6791);
 function getPrNumber() {
+    core.info(JSON.stringify(github.context.payload));
     const pullRequest = github.context.payload.pull_request;
     if (!pullRequest) {
         return undefined;
@@ -8940,6 +8892,143 @@ function addLabels(client, prNumber, labels) {
         });
     });
 }
+function formatLabelName(thresholdName) {
+    return `pr-size: ${thresholdName}`;
+}
+function run() {
+    var _a, _b;
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const token = core.getInput('GITHUB_TOKEN', { required: true });
+            core.info('Getting PR number from context...');
+            const prNumber = getPrNumber();
+            if (!prNumber) {
+                core.error('Could not get pull request number from context, exiting');
+                return;
+            }
+            const additions = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.additions;
+            const deletions = (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.deletions;
+            const changeSize = additions + deletions;
+            core.info(`PR #${prNumber} has ${changeSize} LoC change (${additions} additions; ${deletions} deletions)`);
+            const client = github.getOctokit(token);
+            const owner = github.context.repo.owner;
+            const repo = github.context.repo.repo;
+            core.info(`Get repo labels for [ ${owner} / ${repo} ]...`);
+            const repoLabels = client.rest.issues.listLabelsForRepo({
+                owner: owner,
+                repo: repo
+            });
+            core.info('Labels:');
+            core.info(JSON.stringify(repoLabels));
+            return;
+            const metricsData = (0, lib_1.getMetrics)();
+            // Create labels if needed
+            for (const threshold of metricsData.thresholds) {
+                const label = formatLabelName(threshold.name);
+                core.info(`Creating label in [ ${owner} / ${repo} ]: ${label}`);
+                yield client.rest.issues.createLabel({
+                    owner,
+                    repo,
+                    name: label
+                });
+            }
+            for (const threshold of metricsData.thresholds) {
+                const thresholdName = threshold.name;
+                const thresholdLoc = threshold.threshold;
+                core.debug(`${thresholdName}: ${thresholdLoc}`);
+                core.debug(`changeSize <= thresholdLoc ? :${changeSize <= thresholdLoc}`);
+                if (changeSize <= thresholdLoc) {
+                    const label = formatLabelName(thresholdName);
+                    core.info(`Adding ${label} to PR #${prNumber} and exiting.`);
+                    yield addLabels(client, prNumber, [label]);
+                    return;
+                }
+            }
+        }
+        catch (error) {
+            core.error(error);
+            core.setFailed(error.message);
+        }
+    });
+}
+run();
+
+
+/***/ }),
+
+/***/ 5700:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getMetrics = void 0;
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+function getMetrics() {
+    const response = fs_1.default.readFileSync('./data.json', 'utf-8');
+    return JSON.parse(response);
+}
+exports.getMetrics = getMetrics;
+
+
+/***/ }),
+
+/***/ 3933:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.pullRequests = void 0;
+function pullRequests(octokit, repoOwner, repoName, state) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return octokit.rest.pulls.list({
+            owner: repoOwner,
+            repo: repoName,
+            state,
+            sort: 'created'
+        });
+    });
+}
+exports.pullRequests = pullRequests;
+
+
+/***/ }),
+
+/***/ 6791:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__nccwpck_require__(5700), exports);
+__exportStar(__nccwpck_require__(3933), exports);
 
 
 /***/ }),
