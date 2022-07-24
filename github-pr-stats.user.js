@@ -123,10 +123,10 @@ function loadDeveloperInsights() {
         // as the arrow when using `inline` style, which is the default
         // for details/summary
         ourHtml += `<style>
-        details > summary:before {
+        details.githubPrStats > summary:before {
           content: "▶"
         }
-        details[open] > summary:before {
+        details.githubPrStats[open] > summary:before {
           content: "▼"
         }
         </style>`
@@ -140,7 +140,7 @@ function loadDeveloperInsights() {
         // Add the Overall P50 & P90 horizontal bar chart
         ourHtml += `<canvas style='padding:5px;' id='chart_overview_${index}' style='width:90%;'></canvas>`
 
-        ourHtml += `<details style='padding-left:10px; padding-top: 5px; padding-bottom: 5px;'><summary style='display: flex;'><i style='padding-left: 5px'>Code Size Breakdown</i></summary>
+        ourHtml += `<details class="githubPrStats" style='padding-left:10px; padding-top: 5px; padding-bottom: 5px;'><summary style='display: flex;'><i style='padding-left: 5px'>Code Size Breakdown</i></summary>
           <canvas style='padding:5px;' id='chart_detail_${index}' style='width:90%;'></canvas>
           <table style='padding: 5px; margin: 10px; width: 90%;'>
             <tr style='${txt_c()} background-color: var(--color-bg-tertiary);'><th>P50</th><th>Size</th><th>P90</th></tr>
