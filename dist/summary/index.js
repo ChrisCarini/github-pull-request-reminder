@@ -8854,10 +8854,33 @@ exports.getMetrics = getMetrics;
 /***/ }),
 
 /***/ 3933:
-/***/ (function(__unused_webpack_module, exports) {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8868,18 +8891,28 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.pullRequests = void 0;
+exports.getPrNumber = exports.pullRequests = void 0;
+const github = __importStar(__nccwpck_require__(5438));
 function pullRequests(octokit, repoOwner, repoName, state) {
     return __awaiter(this, void 0, void 0, function* () {
         return octokit.rest.pulls.list({
             owner: repoOwner,
             repo: repoName,
             state,
-            sort: 'created'
+            sort: 'created',
+            direction: 'desc'
         });
     });
 }
 exports.pullRequests = pullRequests;
+function getPrNumber() {
+    const pullRequest = github.context.payload.pull_request;
+    if (!pullRequest) {
+        return undefined;
+    }
+    return pullRequest.number;
+}
+exports.getPrNumber = getPrNumber;
 
 
 /***/ }),
@@ -8955,67 +8988,79 @@ const myToken = core.getInput('GITHUB_TOKEN');
 const octokit = github.getOctokit(myToken);
 const owner = github.context.repo.owner;
 const repo = github.context.repo.repo;
+const data = (0, lib_1.getMetrics)();
+function generateCommentText(metricName, action, compareTime, creationTime) {
+    const compare_time = new Date(compareTime);
+    const creation_time = new Date(creationTime);
+    const age_seconds = (compare_time.getTime() - creation_time.getTime()) / 1000;
+    const age = age_seconds / 3600;
+    const metricP50Overall = data.metrics[metricName].P50.Overall;
+    const percent_diff = (100 * Math.abs((age_seconds - metricP50Overall) / metricP50Overall)).toFixed(2);
+    const direction = age_seconds > metricP50Overall ? 'higher' : 'lower';
+    return `<details open>
+<summary>${metricName}</summary>
+Your pull request took ${age.toFixed(2)} hours to be ${action}. This is ${percent_diff}% ${direction} than the P50 ${metricName} for this project.
+</details>`;
+}
 function run() {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const allClosedPrs = yield (0, lib_1.pullRequests)(octokit, owner, repo, 'closed');
-            for (const pr of allClosedPrs.data) {
-                core.debug(`PR: ${JSON.stringify(pr, null, 2)}`);
-                if (pr.merged_at) {
-                    const merged_time = new Date(pr.merged_at);
-                    const creation_time = new Date(pr.created_at);
-                    const age_seconds = (merged_time.getTime() - creation_time.getTime()) / 1000;
-                    const age = age_seconds / 3600;
-                    const data = (0, lib_1.getMetrics)();
-                    const ttm_p50 = data.metrics['Time to Merge'].P50.Overall;
-                    const tta_p50 = data.metrics['Time to Approval'].P50.Overall;
-                    const merge_percent_diff = (100 * Math.abs((age_seconds - ttm_p50) / ttm_p50)).toFixed(2);
-                    const merge_dir = age_seconds > ttm_p50 ? 'higher' : 'lower';
-                    let approve_blurb = "";
-                    const review_params = { owner, repo, pull_number: pr.number };
-                    octokit.rest.pulls.listReviews(review_params).then(reviews => {
-                        core.info(`Reviews: ${reviews}`);
-                        const approve = reviews.data.find(review => review.state === "APPROVED");
-                        if (approve && approve.submitted_at) {
-                            const approve_time = new Date(approve.submitted_at);
-                            const approve_age_seconds = (approve_time.getTime() - creation_time.getTime()) / 1000;
-                            const approve_age = approve_age_seconds / 3600;
-                            const approve_percent_diff = (100 * Math.abs((approve_age_seconds - tta_p50) / tta_p50)).toFixed(2);
-                            const approve_dir = approve_age_seconds > tta_p50 ? 'higher' : 'lower';
-                            approve_blurb = `Your pull request took ${approve_age.toFixed(2)} hours to be merged. This is ${approve_percent_diff}% ${approve_dir} than the P50 Time to Approval for this multiproduct.`;
-                        }
-                    });
-                    const commentText = `Hi @${(_a = pr.user) === null || _a === void 0 ? void 0 : _a.login}
-  
+            const prNumber = (0, lib_1.getPrNumber)();
+            if (!prNumber) {
+                core.error('Could not get pull request number from context, exiting');
+                return;
+            }
+            core.info(`PR #${prNumber} - Get PR Info...`);
+            const { data: pr } = yield octokit.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: prNumber
+            });
+            core.info(`PR #${prNumber} - Processing...`);
+            if (!pr.merged_at) {
+                core.info(`PR #${prNumber} does not have 'merged_at' set; closed no merge. Continuing to next PR...`);
+                return;
+            }
+            const { data: prComments } = yield octokit.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number: prNumber
+            });
+            core.debug(`PR #${prNumber} - Comments: ${JSON.stringify(prComments, null, 2)}`);
+            const index = prComments.findIndex(comment => { var _a; return (_a = comment.body) === null || _a === void 0 ? void 0 : _a.includes('GitHub PR Metrics Bot'); });
+            if (index !== -1) {
+                core.info(`PR #${prNumber} already has a comment from GitHub PR Metrics Bot. Continuing to next PR...`);
+                return;
+            }
+            core.info(`PR #${prNumber} - Generating comment text...`);
+            const merge_blurb = generateCommentText('Time to Merge', 'merged', pr.merged_at, pr.created_at);
+            // Identify if the PR was approved, and if so, generate text for associated approval information.
+            const { data: prReviews } = yield octokit.rest.pulls.listReviews({
+                owner,
+                repo,
+                pull_number: prNumber
+            });
+            core.debug(`PR #${prNumber} - Reviews: ${JSON.stringify(prReviews, null, 2)}`);
+            const approve = prReviews.find(review => review.state === 'APPROVED');
+            const approve_blurb = !(approve && approve.submitted_at) ? '' :
+                generateCommentText('Time to Approval', 'approved', approve.submitted_at, pr.created_at);
+            const commentText = `Hi @${(_a = pr.user) === null || _a === void 0 ? void 0 : _a.login}
+
 Here is a summary of your pull request:
 
-<details open>
-<summary>Time to Merge</summary>
-Your pull request took ${age.toFixed(2)} hours to be merged. This is ${merge_percent_diff}% ${merge_dir} than the P50 Time to Merge for this multiproduct.
-</details
-<details open>
-<summary>Time to Approval</summary>
+${merge_blurb}
+
 ${approve_blurb}
-</details
 
 Beep Boop Beep,
 GitHub PR Metrics Bot`;
-                    const list_params = { owner, repo, issue_number: pr.number };
-                    octokit.rest.issues.listComments(list_params).then(comments => {
-                        const index = comments.data.findIndex(comment => { var _a; return (_a = comment.body) === null || _a === void 0 ? void 0 : _a.includes('GitHub PR Metrics Bot'); });
-                        if (index === -1) {
-                            const create_params = {
-                                owner,
-                                repo,
-                                issue_number: pr.number,
-                                body: commentText
-                            };
-                            octokit.rest.issues.createComment(create_params);
-                        }
-                    });
-                }
-            }
+            yield octokit.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body: commentText
+            });
         }
         catch (error) {
             if (error instanceof Error)

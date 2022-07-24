@@ -1,17 +1,8 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {getMetrics} from '../lib'
+import {getMetrics, getPrNumber} from '../lib'
 
 type ClientType = ReturnType<typeof github.getOctokit>;
-
-function getPrNumber(): number | undefined {
-  const pullRequest = github.context.payload.pull_request
-  if (!pullRequest) {
-    return undefined
-  }
-
-  return pullRequest.number
-}
 
 async function addLabels(
   client: ClientType,

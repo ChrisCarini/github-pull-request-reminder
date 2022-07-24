@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {getMetrics, pullRequests} from '../lib'
+import {getMetrics, getPrNumber, Metrics} from '../lib'
 
 type ClientType = ReturnType<typeof github.getOctokit>;
 
@@ -10,70 +10,90 @@ const octokit: ClientType = github.getOctokit(myToken)
 const owner: string = github.context.repo.owner
 const repo: string = github.context.repo.repo
 
+const data = getMetrics()
+
+function generateCommentText(metricName: keyof Metrics, action: string, compareTime: string, creationTime: string): string {
+  const compare_time = new Date(compareTime)
+  const creation_time = new Date(creationTime)
+  const age_seconds = (compare_time.getTime() - creation_time.getTime()) / 1000
+  const age = age_seconds / 3600
+  const metricP50Overall = data.metrics[metricName].P50.Overall
+  const percent_diff = (100 * Math.abs((age_seconds - metricP50Overall) / metricP50Overall)).toFixed(2)
+  const direction = age_seconds > metricP50Overall ? 'higher' : 'lower'
+  return `<details open>
+<summary>${metricName}</summary>
+Your pull request took ${age.toFixed(2)} hours to be ${action}. This is ${percent_diff}% ${direction} than the P50 ${metricName} for this project.
+</details>`
+}
+
 async function run(): Promise<void> {
   try {
-    const allClosedPrs = await pullRequests(octokit, owner, repo, 'closed')
-    for (const pr of allClosedPrs.data) {
-      core.debug(`PR: ${JSON.stringify(pr, null, 2)}`)
+    const prNumber = getPrNumber()
 
-      if (pr.merged_at) {
-        const merged_time = new Date(pr.merged_at)
-        const creation_time = new Date(pr.created_at)
-        const age_seconds = (merged_time.getTime() - creation_time.getTime()) / 1000
-        const age = age_seconds / 3600
-        const data = getMetrics()
-        const ttm_p50 = data.metrics['Time to Merge'].P50.Overall
-        const tta_p50 = data.metrics['Time to Approval'].P50.Overall
-        const merge_percent_diff = (100 * Math.abs((age_seconds - ttm_p50) / ttm_p50)).toFixed(2)
-        const merge_dir = age_seconds > ttm_p50 ? 'higher' : 'lower'
+    if (!prNumber) {
+      core.error('Could not get pull request number from context, exiting')
+      return
+    }
 
-        let approve_blurb = ""
+    core.info(`PR #${prNumber} - Get PR Info...`)
+    const {data: pr} = await octokit.rest.pulls.get({
+      owner,
+      repo,
+      pull_number: prNumber
+    })
 
-        const review_params = {owner, repo, pull_number: pr.number}
-        octokit.rest.pulls.listReviews(review_params).then(reviews => {
-          core.info(`Reviews: ${reviews}`)
-          const approve = reviews.data.find(review => review.state === "APPROVED")
-          if(approve && approve.submitted_at) {
-            const approve_time = new Date(approve.submitted_at)
-            const approve_age_seconds = (approve_time.getTime() - creation_time.getTime()) / 1000
-            const approve_age = approve_age_seconds / 3600
-            const approve_percent_diff = (100 * Math.abs((approve_age_seconds - tta_p50) / tta_p50)).toFixed(2)
-            const approve_dir = approve_age_seconds > tta_p50 ? 'higher' : 'lower'
-            approve_blurb = `Your pull request took ${approve_age.toFixed(2)} hours to be merged. This is ${approve_percent_diff}% ${approve_dir} than the P50 Time to Approval for this multiproduct.`
-          }
-        })
-        const commentText = `Hi @${pr.user?.login}
-  
+    core.info(`PR #${prNumber} - Processing...`)
+    if (!pr.merged_at) {
+      core.info(`PR #${prNumber} does not have 'merged_at' set; closed no merge. Continuing to next PR...`)
+      return
+    }
+
+    const {data: prComments} = await octokit.rest.issues.listComments({
+      owner,
+      repo,
+      issue_number: prNumber
+    })
+    core.debug(`PR #${prNumber} - Comments: ${JSON.stringify(prComments, null, 2)}`)
+    const index = prComments.findIndex(comment => comment.body?.includes('GitHub PR Metrics Bot'))
+    if (index !== -1) {
+      core.info(`PR #${prNumber} already has a comment from GitHub PR Metrics Bot. Continuing to next PR...`)
+      return
+    }
+
+    core.info(`PR #${prNumber} - Generating comment text...`)
+
+    const merge_blurb = generateCommentText('Time to Merge', 'merged', pr.merged_at, pr.created_at)
+
+    // Identify if the PR was approved, and if so, generate text for associated approval information.
+    const {data: prReviews} = await octokit.rest.pulls.listReviews({
+      owner,
+      repo,
+      pull_number: prNumber
+    })
+    core.debug(`PR #${prNumber} - Reviews: ${JSON.stringify(prReviews, null, 2)}`)
+    const approve = prReviews.find(review => review.state === 'APPROVED')
+    const approve_blurb = !(approve && approve.submitted_at) ? '' :
+      generateCommentText('Time to Approval', 'approved', approve.submitted_at, pr.created_at)
+
+    const commentText = `Hi @${pr.user?.login}
+
 Here is a summary of your pull request:
 
-<details open>
-<summary>Time to Merge</summary>
-Your pull request took ${age.toFixed(2)} hours to be merged. This is ${merge_percent_diff}% ${merge_dir} than the P50 Time to Merge for this multiproduct.
-</details
-<details open>
-<summary>Time to Approval</summary>
+${merge_blurb}
+
 ${approve_blurb}
-</details
 
 Beep Boop Beep,
 GitHub PR Metrics Bot`
 
-        const list_params = {owner, repo, issue_number: pr.number}
-        octokit.rest.issues.listComments(list_params).then(comments => {
-          const index = comments.data.findIndex(comment => comment.body?.includes('GitHub PR Metrics Bot'))
-          if (index === -1) {
-            const create_params = {
-              owner,
-              repo,
-              issue_number: pr.number,
-              body: commentText
-            }
-            octokit.rest.issues.createComment(create_params)
-          }
-        })
-      }
-    }
-  } catch (error) {
+    await octokit.rest.issues.createComment({
+      owner,
+      repo,
+      issue_number: prNumber,
+      body: commentText
+    })
+  } catch
+    (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
 }
