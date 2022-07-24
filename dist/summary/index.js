@@ -8975,7 +8975,7 @@ function run() {
                     let approve_blurb = "";
                     const review_params = { owner, repo, pull_number: pr.number };
                     octokit.rest.pulls.listReviews(review_params).then(reviews => {
-                        core.info(`Reviews: ${reviews}`);
+                        core.info(`PR #${pr.number} - Reviews: ${JSON.stringify(reviews)}`);
                         const approve = reviews.data.find(review => review.state === "APPROVED");
                         if (approve && approve.submitted_at) {
                             const approve_time = new Date(approve.submitted_at);
