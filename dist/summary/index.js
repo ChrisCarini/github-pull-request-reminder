@@ -8854,10 +8854,33 @@ exports.getMetrics = getMetrics;
 /***/ }),
 
 /***/ 3933:
-/***/ (function(__unused_webpack_module, exports) {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8868,7 +8891,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.pullRequests = void 0;
+exports.getPrNumber = exports.pullRequests = void 0;
+const github = __importStar(__nccwpck_require__(5438));
 function pullRequests(octokit, repoOwner, repoName, state) {
     return __awaiter(this, void 0, void 0, function* () {
         return octokit.rest.pulls.list({
@@ -8881,6 +8905,14 @@ function pullRequests(octokit, repoOwner, repoName, state) {
     });
 }
 exports.pullRequests = pullRequests;
+function getPrNumber() {
+    const pullRequest = github.context.payload.pull_request;
+    if (!pullRequest) {
+        return undefined;
+    }
+    return pullRequest.number;
+}
+exports.getPrNumber = getPrNumber;
 
 
 /***/ }),
@@ -8974,38 +9006,46 @@ function run() {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const allClosedPrs = yield (0, lib_1.pullRequests)(octokit, owner, repo, 'closed');
-            for (const pr of allClosedPrs.data) {
-                core.info(`PR #${pr.number} - Processing...`);
-                core.debug(`PR: ${JSON.stringify(pr, null, 2)}`);
-                if (!pr.merged_at) {
-                    core.info(`PR #${pr.number} does not have 'merged_at' set; closed no merge. Continuing to next PR...`);
-                    continue;
-                }
-                const { data: prComments } = yield octokit.rest.issues.listComments({
-                    owner,
-                    repo,
-                    issue_number: pr.number
-                });
-                core.debug(`PR #${pr.number} - Comments: ${JSON.stringify(prComments, null, 2)}`);
-                const index = prComments.findIndex(comment => { var _a; return (_a = comment.body) === null || _a === void 0 ? void 0 : _a.includes('GitHub PR Metrics Bot'); });
-                if (index !== -1) {
-                    core.info(`PR #${pr.number} already has a comment from GitHub PR Metrics Bot. Continuing to next PR...`);
-                    continue;
-                }
-                core.info(`PR #${pr.number} - Generating comment text...`);
-                const merge_blurb = generateCommentText('Time to Merge', 'merged', pr.merged_at, pr.created_at);
-                // Identify if the PR was approved, and if so, generate text for associated approval information.
-                const { data: prReviews } = yield octokit.rest.pulls.listReviews({
-                    owner,
-                    repo,
-                    pull_number: pr.number
-                });
-                core.debug(`PR #${pr.number} - Reviews: ${JSON.stringify(prReviews, null, 2)}`);
-                const approve = prReviews.find(review => review.state === 'APPROVED');
-                const approve_blurb = !(approve && approve.submitted_at) ? '' :
-                    generateCommentText('Time to Approval', 'approved', approve.submitted_at, pr.created_at);
-                const commentText = `Hi @${(_a = pr.user) === null || _a === void 0 ? void 0 : _a.login}
+            const prNumber = (0, lib_1.getPrNumber)();
+            if (!prNumber) {
+                core.error('Could not get pull request number from context, exiting');
+                return;
+            }
+            core.info(`PR #${prNumber} - Get PR Info...`);
+            const { data: pr } = yield octokit.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: prNumber
+            });
+            core.info(`PR #${prNumber} - Processing...`);
+            if (!pr.merged_at) {
+                core.info(`PR #${prNumber} does not have 'merged_at' set; closed no merge. Continuing to next PR...`);
+                return;
+            }
+            const { data: prComments } = yield octokit.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number: prNumber
+            });
+            core.debug(`PR #${prNumber} - Comments: ${JSON.stringify(prComments, null, 2)}`);
+            const index = prComments.findIndex(comment => { var _a; return (_a = comment.body) === null || _a === void 0 ? void 0 : _a.includes('GitHub PR Metrics Bot'); });
+            if (index !== -1) {
+                core.info(`PR #${prNumber} already has a comment from GitHub PR Metrics Bot. Continuing to next PR...`);
+                return;
+            }
+            core.info(`PR #${prNumber} - Generating comment text...`);
+            const merge_blurb = generateCommentText('Time to Merge', 'merged', pr.merged_at, pr.created_at);
+            // Identify if the PR was approved, and if so, generate text for associated approval information.
+            const { data: prReviews } = yield octokit.rest.pulls.listReviews({
+                owner,
+                repo,
+                pull_number: prNumber
+            });
+            core.debug(`PR #${prNumber} - Reviews: ${JSON.stringify(prReviews, null, 2)}`);
+            const approve = prReviews.find(review => review.state === 'APPROVED');
+            const approve_blurb = !(approve && approve.submitted_at) ? '' :
+                generateCommentText('Time to Approval', 'approved', approve.submitted_at, pr.created_at);
+            const commentText = `Hi @${(_a = pr.user) === null || _a === void 0 ? void 0 : _a.login}
 
 Here is a summary of your pull request:
 
@@ -9015,13 +9055,12 @@ ${approve_blurb}
 
 Beep Boop Beep,
 GitHub PR Metrics Bot`;
-                yield octokit.rest.issues.createComment({
-                    owner,
-                    repo,
-                    issue_number: pr.number,
-                    body: commentText
-                });
-            }
+            yield octokit.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body: commentText
+            });
         }
         catch (error) {
             if (error instanceof Error)
