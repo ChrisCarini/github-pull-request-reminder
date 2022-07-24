@@ -29,6 +29,7 @@ async function run(): Promise<void> {
 
         const review_params = {owner, repo, pull_number: pr.number}
         octokit.rest.pulls.listReviews(review_params).then(reviews => {
+          core.info(`Reviews: ${reviews}`)
           const approve = reviews.data.find(review => review.state === "APPROVED")
           if(approve && approve.submitted_at) {
             const approve_time = new Date(approve.submitted_at)
