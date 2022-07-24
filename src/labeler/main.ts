@@ -8,18 +8,24 @@ export async function run() {
   try {
     const token = core.getInput('GITHUB_TOKEN', {required: true})
 
+    core.info('Getting PR number from context...')
+
     const prNumber = getPrNumber()
     if (!prNumber) {
-      console.log('Could not get pull request number from context, exiting')
+      core.error('Could not get pull request number from context, exiting')
       return
     }
 
     const client: ClientType = github.getOctokit(token)
 
+    const owner = github.context.repo.owner
+    const repo = github.context.repo.repo
+    core.info(`Get repo labels for [ ${owner} / ${repo} ]...`)
     const repoLabels = client.rest.issues.listLabelsForRepo({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo
+      owner: owner,
+      repo: repo
     })
+    core.info('Labels:')
     core.info(JSON.stringify(repoLabels))
     return
 
@@ -55,6 +61,7 @@ export async function run() {
 }
 
 function getPrNumber(): number | undefined {
+  core.info(JSON.stringify(github.context.payload))
   const pullRequest = github.context.payload.pull_request
   if (!pullRequest) {
     return undefined
