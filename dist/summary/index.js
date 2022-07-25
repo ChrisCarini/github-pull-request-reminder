@@ -8998,8 +8998,54 @@ function generateCommentText(metricName, action, compareTime, creationTime) {
     const percent_diff = (100 * Math.abs((age_seconds - metricP50Overall) / metricP50Overall)).toFixed(2);
     const direction = age_seconds > metricP50Overall ? 'higher' : 'lower';
     return `<details open>
-<summary><h4>${metricName}</h4></summary>
+<summary><b>${metricName}</b></summary>
 Your pull request took <b>${age.toFixed(2)}</b> hours to be ${action}. This is ${percent_diff}% <b>${direction}</b> than the P50 ${metricName} (currently ${(metricP50Overall / 3600).toFixed(2)} hours) for this project.
+</details>`;
+}
+function findSortedApprovals(prReviews) {
+    return prReviews
+        .filter(review => review.state === 'APPROVED')
+        .sort((a, b) => {
+        if (!a || !(a === null || a === void 0 ? void 0 : a.submitted_at)) {
+            return -1;
+        }
+        if (!b || !(b === null || b === void 0 ? void 0 : b.submitted_at)) {
+            return 1;
+        }
+        return (new Date(a === null || a === void 0 ? void 0 : a.submitted_at)).getTime() - (new Date(b === null || b === void 0 ? void 0 : b.submitted_at)).getTime();
+    });
+}
+function generateInfoTable(pr, prComments, prReviews) {
+    var _a, _b;
+    const firstComment = prComments
+        .sort((a, b) => {
+        if (!a || !(a === null || a === void 0 ? void 0 : a.created_at)) {
+            return -1;
+        }
+        if (!a || !(b === null || b === void 0 ? void 0 : b.created_at)) {
+            return 1;
+        }
+        return (new Date(a === null || a === void 0 ? void 0 : a.created_at)).getTime() - (new Date(b === null || b === void 0 ? void 0 : b.created_at)).getTime();
+    })[0];
+    const prApprovals = findSortedApprovals(prReviews);
+    const firstApproval = prApprovals[0];
+    const collaborators = new Set([
+        ...prComments.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.user) === null || _a === void 0 ? void 0 : _a.login; }),
+        ...prReviews.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.user) === null || _a === void 0 ? void 0 : _a.login; })
+    ]);
+    core.info(`firstComment: ${JSON.stringify(firstComment)}`);
+    core.info(`firstApproval: ${JSON.stringify(firstApproval)}`);
+    return `<details>
+<summary><h4>PR Recap</h4></summary>
+<table>
+<tr><th>Opened at</th><td>${pr === null || pr === void 0 ? void 0 : pr.created_at}</td></tr>
+<tr><th># of comments</th><td>${prComments.length}</td></tr>
+<tr><th>First comment at</th><td>${firstComment === null || firstComment === void 0 ? void 0 : firstComment.created_at} <i>(by ${(_a = firstComment === null || firstComment === void 0 ? void 0 : firstComment.user) === null || _a === void 0 ? void 0 : _a.login})</i></td></tr>
+<tr><th># of Approvals</th><td>${prApprovals.length}</td></tr>
+<tr><th>First Approval at</th><td>${firstApproval.submitted_at} <i>(by ${(_b = firstApproval === null || firstApproval === void 0 ? void 0 : firstApproval.user) === null || _b === void 0 ? void 0 : _b.login})</i></td></tr>
+<tr><th>Merged at</th><td>${pr.merged_at}</td></tr>
+<tr><th># of collaborators</th><td>${collaborators.size}</td></tr>
+</table>
 </details>`;
 }
 function run() {
@@ -9052,6 +9098,8 @@ Here is a summary of your pull request:
 ${merge_blurb}
 
 ${approve_blurb}
+
+${generateInfoTable(pr, prComments, prReviews)}
 
 Beep Boop Beep,
 GitHub PR Metrics Bot`;
