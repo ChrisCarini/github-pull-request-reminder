@@ -92,3 +92,4 @@ jobs:
           smartPrReminders: true
           prSizeLabel: true
           prStatsSummary: true
+          SLACK_WEBHOOK: "https://hooks.slack.com/workflows/<REDACTED>"
