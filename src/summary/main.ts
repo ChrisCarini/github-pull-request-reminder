@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {getMetrics, getPrNumber, Metrics} from '../lib'
 import {components} from '@octokit/openapi-types'
+import fetch from 'node-fetch'
 
 type ClientType = ReturnType<typeof github.getOctokit>;
 
@@ -12,6 +13,13 @@ const owner: string = github.context.repo.owner
 const repo: string = github.context.repo.repo
 
 const data = getMetrics()
+
+function computeDeltaInHours(compareTime: string, creationTime: string): number {
+  const compare_time = new Date(compareTime)
+  const creation_time = new Date(creationTime)
+  const age_seconds = (compare_time.getTime() - creation_time.getTime()) / 1000
+  return age_seconds / 3600
+}
 
 function generateCommentText(metricName: keyof Metrics, action: string, compareTime: string, creationTime: string): string {
   const compare_time = new Date(compareTime)
@@ -148,6 +156,35 @@ GitHub PR Metrics Bot`
       issue_number: prNumber,
       body: commentText
     })
+
+    const slackWebhook = core.getInput('SLACK_WEBHOOK')
+    if (slackWebhook) {
+      const response = await fetch(slackWebhook, {
+        method: 'POST',
+        body: JSON.stringify({
+          'repo_name': repo,
+          'pr_number': pr.number,
+          'time_to_merge': `${computeDeltaInHours(pr.merged_at, pr.created_at).toFixed(2)} hours`,
+          'time_to_approval': !(approve && approve.submitted_at) ? 'not approved' : `${computeDeltaInHours(approve.submitted_at, pr.created_at).toFixed(2)} hours`,
+          'pr_author': `${pr.user?.login}@linkedin.com`
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        }
+      })
+      /*
+URL: https://hooks.slack.com/workflows/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
+{
+  "repo_name": "Example text",
+  "pr_number": "Example text",
+  "time_to_merge": "Example text",
+  "time_to_approval": "Example text",
+  "pr_author": "example@example.com"
+}
+       */
+    }
+
   } catch
     (error) {
     if (error instanceof Error) core.setFailed(error.message)
