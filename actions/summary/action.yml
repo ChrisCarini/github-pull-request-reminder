@@ -12,6 +12,10 @@ inputs:
     description: 'Default to {{ github.token }}. This is the default GitHub token available to actions and is used to run the action and to post the comments on PRs. The default token permissions (https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) work fine.'
     default: '${{ github.token }}'
     required: false
+  SLACK_WEBHOOK:
+    description: 'A webhook URL for posting updates to Slack.'
+    default: ''
+    required: false
 
 runs:
   using: 'node16'
