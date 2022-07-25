@@ -8999,7 +8999,7 @@ function generateCommentText(metricName, action, compareTime, creationTime) {
     const direction = age_seconds > metricP50Overall ? 'higher' : 'lower';
     return `<details open>
 <summary>${metricName}</summary>
-Your pull request took ${age.toFixed(2)} hours to be ${action}. This is ${percent_diff}% ${direction} than the P50 ${metricName} for this project.
+Your pull request took <b>${age.toFixed(2)}</b> hours to be ${action}. This is ${percent_diff}% <b>${direction}</b> than the P50 ${metricName} (currently ${metricP50Overall.toFixed(2)} hours) for this project.
 </details>`;
 }
 function run() {
