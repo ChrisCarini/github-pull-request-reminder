@@ -1,15 +1,16 @@
 name: 'Sample GitHub Workflow for "GitHub Pull Request Reminder" action'
 on:
-  schedule:
-    # "The shortest interval you can run scheduled workflows is once every 5 minutes."
-    #   From Docs: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
-    #
-    # We pick 15 minutes, as there are known/documented occurrences of GH runners not guaranteeing / ensuring
-    # jobs will get picked up and run.
-    #     - https://github.community/t/cron-job-actions-not-scheduling-properly/145662
-    #     - https://github.community/t/no-assurance-on-scheduled-jobs/133753
-    #     - https://upptime.js.org/blog/2021/01/22/github-actions-schedule-not-working/
-    - cron: "*/15 * * * *" # run every 15 minutes
+# COMMENTING BELOW OUT AS IT USED UP ALL MY GHA CREDITS FOR A SINGLE MONTH ABOUT 3/4 THE WAY THROUGH THE MONTH.
+#   schedule:
+#     # "The shortest interval you can run scheduled workflows is once every 5 minutes."
+#     #   From Docs: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
+#     #
+#     # We pick 15 minutes, as there are known/documented occurrences of GH runners not guaranteeing / ensuring
+#     # jobs will get picked up and run.
+#     #     - https://github.community/t/cron-job-actions-not-scheduling-properly/145662
+#     #     - https://github.community/t/no-assurance-on-scheduled-jobs/133753
+#     #     - https://upptime.js.org/blog/2021/01/22/github-actions-schedule-not-working/
+#     - cron: "*/15 * * * *" # run every 15 minutes
 
   pull_request:
     # Trigger the workflow on:
