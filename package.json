@@ -17,6 +17,9 @@
     "test": "jest",
     "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
   },
+  "engines": {
+    "node": ">= 18"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ChrisCarini/github-pull-request-reminder.git"
@@ -33,6 +36,7 @@
     "@actions/github": "^5.0.3",
     "@actions/http-client": "^2.0.1",
     "@octokit/rest": "^19.0.3",
+    "@octokit/types": "^12.0.0",
     "node-fetch": "^3.2.10"
   },
   "devDependencies": {
@@ -48,5 +52,8 @@
     "prettier": "2.7.1",
     "ts-jest": "^28.0.7",
     "typescript": "^4.4.4"
+  },
+  "volta": {
+    "node": "18.18.0"
   }
 }

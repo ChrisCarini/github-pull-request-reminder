@@ -2,12 +2,15 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {getMetrics, getPrNumber, Metrics} from '../lib'
 import {components} from '@octokit/openapi-types'
+import { GetResponseDataTypeFromEndpointMethod } from '@octokit/types'
 import fetch from 'node-fetch'
 
 type ClientType = ReturnType<typeof github.getOctokit>;
 
 const myToken = core.getInput('GITHUB_TOKEN')
 const octokit: ClientType = github.getOctokit(myToken)
+
+type GetPullsDataType = GetResponseDataTypeFromEndpointMethod<typeof octokit.rest.pulls.get>;
 
 const owner: string = github.context.repo.owner
 const repo: string = github.context.repo.repo
@@ -51,7 +54,7 @@ function findSortedApprovals(prReviews: components['schemas']['pull-request-revi
 }
 
 function generateInfoTable(
-  pr: components['schemas']['pull-request'],
+  pr: GetPullsDataType,
   prComments: components['schemas']['issue-comment'][],
   prReviews: components['schemas']['pull-request-review'][]
 ): string {
@@ -98,11 +101,11 @@ async function run(): Promise<void> {
     }
 
     core.info(`PR #${prNumber} - Get PR Info...`)
-    const {data: pr}: {data: components['schemas']['pull-request']} = await octokit.rest.pulls.get({
+    const pr: GetPullsDataType = (await octokit.rest.pulls.get({
       owner,
       repo,
-      pull_number: prNumber
-    })
+      pull_number: prNumber,
+    })).data
 
     core.info(`PR #${prNumber} - Processing...`)
     if (!pr.merged_at) {
