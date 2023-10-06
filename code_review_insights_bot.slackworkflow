@@ -1,0 +1,165 @@
+{
+  "source_id": "418087702408281530",
+  "version": "1",
+  "workflow": {
+    "name": "Code Review Insights Bot",
+    "blueprint": {
+      "version": "1",
+      "trigger": {
+        "type": "webhook",
+        "id": "aa1b806e-5292-4663-87f9-0c69e1e04c83",
+        "config": {
+          "url": "",
+          "variables": [
+            {
+              "type": "text",
+              "key": "repo_name",
+              "client_id": "cef481e0-e084-4d79-b295-de0d18e30bd2"
+            },
+            {
+              "type": "text",
+              "key": "pr_number",
+              "client_id": "fa05e4bc-34c3-43dc-82a8-60ba8e0ca281"
+            },
+            {
+              "type": "text",
+              "key": "time_to_merge",
+              "client_id": "d764828e-2047-4fa3-82b6-bf40fc7a905e"
+            },
+            {
+              "type": "text",
+              "key": "time_to_approval",
+              "client_id": "f246665d-6f3e-401c-b7e2-956849aac569"
+            },
+            {
+              "type": "user_email",
+              "key": "pr_author",
+              "client_id": "053ba94f-6bb0-40a2-bf0f-ead7c863053d"
+            }
+          ],
+          "revoked_token": false
+        }
+      },
+      "steps": [
+        {
+          "type": "message",
+          "id": "41ccf72c-98b5-4ff6-8b8d-4bf2fab4e806",
+          "config": {
+            "channel": {
+              "value": "C03RH6UUNE4"
+            },
+            "has_button": false,
+            "message_text": "Hello {{aa1b806e-5292-4663-87f9-0c69e1e04c83==053ba94f-6bb0-40a2-bf0f-ead7c863053d==user_email}}\n\n:tada: {{aa1b806e-5292-4663-87f9-0c69e1e04c83==cef481e0-e084-4d79-b295-de0d18e30bd2==text}} PR# {{aa1b806e-5292-4663-87f9-0c69e1e04c83==fa05e4bc-34c3-43dc-82a8-60ba8e0ca281==text}} was just merged!\n\nBelow are some stats for this PR\n\n:white_check_mark: Time to Approval: {{aa1b806e-5292-4663-87f9-0c69e1e04c83==f246665d-6f3e-401c-b7e2-956849aac569==text}}\n:merged: Time to Merge: {{aa1b806e-5292-4663-87f9-0c69e1e04c83==d764828e-2047-4fa3-82b6-bf40fc7a905e==text}}",
+            "message_blocks": [
+              {
+                "type": "rich_text",
+                "elements": [
+                  {
+                    "type": "rich_text_section",
+                    "elements": [
+                      {
+                        "text": "Hello ",
+                        "type": "text"
+                      },
+                      {
+                        "type": "workflowtoken",
+                        "id": "aa1b806e-5292-4663-87f9-0c69e1e04c83==053ba94f-6bb0-40a2-bf0f-ead7c863053d==user_email",
+                        "property": "",
+                        "data_type": "user"
+                      },
+                      {
+                        "text": "\n\n",
+                        "type": "text"
+                      },
+                      {
+                        "name": "tada",
+                        "type": "emoji"
+                      },
+                      {
+                        "text": " ",
+                        "type": "text"
+                      },
+                      {
+                        "type": "workflowtoken",
+                        "id": "aa1b806e-5292-4663-87f9-0c69e1e04c83==cef481e0-e084-4d79-b295-de0d18e30bd2==text",
+                        "property": "",
+                        "data_type": "text"
+                      },
+                      {
+                        "text": " PR# ",
+                        "type": "text"
+                      },
+                      {
+                        "type": "workflowtoken",
+                        "id": "aa1b806e-5292-4663-87f9-0c69e1e04c83==fa05e4bc-34c3-43dc-82a8-60ba8e0ca281==text",
+                        "property": "",
+                        "data_type": "text"
+                      },
+                      {
+                        "text": " ",
+                        "type": "text"
+                      },
+                      {
+                        "url": "http://google.com",
+                        "text": "was",
+                        "type": "link"
+                      },
+                      {
+                        "text": " just merged!\n\nBelow are some stats for this PR\n\n",
+                        "type": "text"
+                      },
+                      {
+                        "name": "white_check_mark",
+                        "type": "emoji",
+                        "style": {
+                          "bold": true
+                        }
+                      },
+                      {
+                        "text": " Time to Approval: ",
+                        "type": "text",
+                        "style": {
+                          "bold": true
+                        }
+                      },
+                      {
+                        "type": "workflowtoken",
+                        "id": "aa1b806e-5292-4663-87f9-0c69e1e04c83==f246665d-6f3e-401c-b7e2-956849aac569==text",
+                        "property": "",
+                        "data_type": "text"
+                      },
+                      {
+                        "text": "\n",
+                        "type": "text"
+                      },
+                      {
+                        "name": "merged",
+                        "type": "emoji",
+                        "style": {
+                          "bold": true
+                        }
+                      },
+                      {
+                        "text": " Time to Merge: ",
+                        "type": "text",
+                        "style": {
+                          "bold": true
+                        }
+                      },
+                      {
+                        "type": "workflowtoken",
+                        "id": "aa1b806e-5292-4663-87f9-0c69e1e04c83==d764828e-2047-4fa3-82b6-bf40fc7a905e==text",
+                        "property": "",
+                        "data_type": "text"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
