@@ -14099,6 +14099,7 @@ function generateInfoTable(pr, prComments, prReviews) {
 function run() {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
+        core.info('Starting...');
         try {
             const prNumber = (0, lib_1.getPrNumber)();
             if (!prNumber) {
