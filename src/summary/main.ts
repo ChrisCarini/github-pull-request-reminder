@@ -92,6 +92,7 @@ function generateInfoTable(
 }
 
 async function run(): Promise<void> {
+  core.info('Starting...')
   try {
     const prNumber = getPrNumber()
 
