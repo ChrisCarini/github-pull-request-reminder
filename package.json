@@ -14,7 +14,7 @@
     "labeler:package": "ncc build src/labeler/main.ts --out dist/labeler --source-map --license licenses.txt",
     "reminder:package": "ncc build src/reminder/main.ts --out dist/reminder --source-map --license licenses.txt",
     "summary:package": "ncc build src/summary/main.ts --out dist/summary --source-map --license licenses.txt",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
   },
   "engines": {

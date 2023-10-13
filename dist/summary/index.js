@@ -6847,7 +6847,7 @@ var import_endpoint = __nccwpck_require__(9440);
 var import_universal_user_agent = __nccwpck_require__(5030);
 
 // pkg/dist-src/version.js
-var VERSION = "8.1.2";
+var VERSION = "8.1.4";
 
 // pkg/dist-src/fetch-wrapper.js
 var import_is_plain_object = __nccwpck_require__(3287);
@@ -6953,7 +6953,15 @@ function fetchWrapper(requestOptions) {
       throw error;
     else if (error.name === "AbortError")
       throw error;
-    throw new import_request_error.RequestError(error.message, 500, {
+    let message = error.message;
+    if (error.name === "TypeError" && "cause" in error) {
+      if (error.cause instanceof Error) {
+        message = error.cause.message;
+      } else if (typeof error.cause === "string") {
+        message = error.cause;
+      }
+    }
+    throw new import_request_error.RequestError(message, 500, {
       request: requestOptions
     });
   });
@@ -10564,6 +10572,7 @@ module.exports = {
 
 const assert = __nccwpck_require__(9491)
 const net = __nccwpck_require__(1808)
+const http = __nccwpck_require__(3685)
 const { pipeline } = __nccwpck_require__(2781)
 const util = __nccwpck_require__(3983)
 const timers = __nccwpck_require__(9459)
@@ -10651,6 +10660,7 @@ const {
     HTTP2_HEADER_AUTHORITY,
     HTTP2_HEADER_METHOD,
     HTTP2_HEADER_PATH,
+    HTTP2_HEADER_SCHEME,
     HTTP2_HEADER_CONTENT_LENGTH,
     HTTP2_HEADER_EXPECT,
     HTTP2_HEADER_STATUS
@@ -10827,7 +10837,7 @@ class Client extends DispatcherBase {
     this[kConnector] = connect
     this[kSocket] = null
     this[kPipelining] = pipelining != null ? pipelining : 1
-    this[kMaxHeadersSize] = maxHeaderSize || 16384
+    this[kMaxHeadersSize] = maxHeaderSize || http.maxHeaderSize
     this[kKeepAliveDefaultTimeout] = keepAliveTimeout == null ? 4e3 : keepAliveTimeout
     this[kKeepAliveMaxTimeout] = keepAliveMaxTimeout == null ? 600e3 : keepAliveMaxTimeout
     this[kKeepAliveTimeoutThreshold] = keepAliveTimeoutThreshold == null ? 1e3 : keepAliveTimeoutThreshold
@@ -12247,7 +12257,7 @@ function writeH2 (client, session, request) {
   const h2State = client[kHTTP2SessionState]
 
   headers[HTTP2_HEADER_AUTHORITY] = host || client[kHost]
-  headers[HTTP2_HEADER_PATH] = path
+  headers[HTTP2_HEADER_METHOD] = method
 
   if (method === 'CONNECT') {
     session.ref()
@@ -12274,9 +12284,13 @@ function writeH2 (client, session, request) {
     })
 
     return true
-  } else {
-    headers[HTTP2_HEADER_METHOD] = method
   }
+
+  // https://tools.ietf.org/html/rfc7540#section-8.3
+  // :path and :scheme headers must be omited when sending CONNECT
+
+  headers[HTTP2_HEADER_PATH] = path
+  headers[HTTP2_HEADER_SCHEME] = 'https'
 
   // https://tools.ietf.org/html/rfc7231#section-4.3.1
   // https://tools.ietf.org/html/rfc7231#section-4.3.2
@@ -12414,6 +12428,7 @@ function writeH2 (client, session, request) {
       stream.cork()
       stream.write(body)
       stream.uncork()
+      stream.end()
       request.onBodySent(body)
       request.onRequestSent()
     } else if (util.isBlobLike(body)) {
@@ -12648,13 +12663,17 @@ async function writeIterable ({ h2stream, body, client, request, socket, content
           throw socket[kError]
         }
 
-        if (!h2stream.write(chunk)) {
+        const res = h2stream.write(chunk)
+        request.onBodySent(chunk)
+        if (!res) {
           await waitForDrain()
         }
       }
     } catch (err) {
       h2stream.destroy(err)
     } finally {
+      request.onRequestSent()
+      h2stream.end()
       h2stream
         .off('close', onDrain)
         .off('drain', onDrain)
@@ -12867,11 +12886,13 @@ class CompatFinalizer {
   }
 
   register (dispatcher, key) {
-    dispatcher.on('disconnect', () => {
-      if (dispatcher[kConnected] === 0 && dispatcher[kSize] === 0) {
-        this.finalizer(key)
-      }
-    })
+    if (dispatcher.on) {
+      dispatcher.on('disconnect', () => {
+        if (dispatcher[kConnected] === 0 && dispatcher[kSize] === 0) {
+          this.finalizer(key)
+        }
+      })
+    }
   }
 }
 
@@ -14537,7 +14558,8 @@ function processHeader (request, key, val, skipAppend = false) {
     key.toLowerCase() === 'content-type'
   ) {
     request.contentType = val
-    request.headers += processHeaderValue(key, val)
+    if (skipAppend) request.headers[key] = processHeaderValue(key, val, skipAppend)
+    else request.headers += processHeaderValue(key, val)
   } else if (
     key.length === 17 &&
     key.toLowerCase() === 'transfer-encoding'
@@ -19227,6 +19249,10 @@ async function httpRedirectFetch (fetchParams, response) {
   if (!sameOrigin(requestCurrentURL(request), locationURL)) {
     // https://fetch.spec.whatwg.org/#cors-non-wildcard-request-header-name
     request.headersList.delete('authorization')
+
+    // "Cookie" and "Host" are forbidden request-headers, which undici doesn't implement.
+    request.headersList.delete('cookie')
+    request.headersList.delete('host')
   }
 
   // 14. If request’s body is non-null, then set request’s body to the first return
@@ -19371,7 +19397,7 @@ async function httpNetworkOrCacheFetch (
   //    user agents should append `User-Agent`/default `User-Agent` value to
   //    httpRequest’s header list.
   if (!httpRequest.headersList.contains('user-agent')) {
-    httpRequest.headersList.append('user-agent', 'undici')
+    httpRequest.headersList.append('user-agent', typeof esbuildDetection === 'undefined' ? 'undici' : 'node')
   }
 
   //    15. If httpRequest’s cache mode is "default" and httpRequest’s header
@@ -19432,6 +19458,8 @@ async function httpNetworkOrCacheFetch (
       httpRequest.headersList.append('accept-encoding', 'gzip, deflate')
     }
   }
+
+  httpRequest.headersList.delete('host')
 
   //    20. If includeCredentials is true, then:
   if (includeCredentials) {
@@ -34137,27 +34165,23 @@ function findSortedApprovals(prReviews) {
         if (!b || !(b === null || b === void 0 ? void 0 : b.submitted_at)) {
             return 1;
         }
-        return (new Date(a === null || a === void 0 ? void 0 : a.submitted_at)).getTime() - (new Date(b === null || b === void 0 ? void 0 : b.submitted_at)).getTime();
+        return new Date(a === null || a === void 0 ? void 0 : a.submitted_at).getTime() - new Date(b === null || b === void 0 ? void 0 : b.submitted_at).getTime();
     });
 }
 function generateInfoTable(pr, prComments, prReviews) {
     var _a, _b;
-    const firstComment = prComments
-        .sort((a, b) => {
+    const firstComment = prComments.sort((a, b) => {
         if (!a || !(a === null || a === void 0 ? void 0 : a.created_at)) {
             return -1;
         }
         if (!a || !(b === null || b === void 0 ? void 0 : b.created_at)) {
             return 1;
         }
-        return (new Date(a === null || a === void 0 ? void 0 : a.created_at)).getTime() - (new Date(b === null || b === void 0 ? void 0 : b.created_at)).getTime();
+        return new Date(a === null || a === void 0 ? void 0 : a.created_at).getTime() - new Date(b === null || b === void 0 ? void 0 : b.created_at).getTime();
     })[0];
     const prApprovals = findSortedApprovals(prReviews);
     const firstApproval = prApprovals[0];
-    const collaborators = new Set([
-        ...prComments.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.user) === null || _a === void 0 ? void 0 : _a.login; }),
-        ...prReviews.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.user) === null || _a === void 0 ? void 0 : _a.login; })
-    ]);
+    const collaborators = new Set([...prComments.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.user) === null || _a === void 0 ? void 0 : _a.login; }), ...prReviews.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.user) === null || _a === void 0 ? void 0 : _a.login; })]);
     return `<details>
 <summary><h4>PR Recap</h4></summary>
 <table>
@@ -34185,7 +34209,7 @@ function run() {
             const pr = (yield octokit.rest.pulls.get({
                 owner,
                 repo,
-                pull_number: prNumber,
+                pull_number: prNumber
             })).data;
             core.info(`PR #${prNumber} - Processing...`);
             if (!pr.merged_at) {
@@ -34213,8 +34237,7 @@ function run() {
             });
             core.debug(`PR #${prNumber} - Reviews: ${JSON.stringify(prReviews, null, 2)}`);
             const approve = prReviews.find(review => review.state === 'APPROVED');
-            const approve_blurb = !(approve && approve.submitted_at) ? '' :
-                generateCommentText('Time to Approval', 'approved', approve.submitted_at, pr.created_at);
+            const approve_blurb = !(approve && approve.submitted_at) ? '' : generateCommentText('Time to Approval', 'approved', approve.submitted_at, pr.created_at);
             const commentText = `Hi @${(_a = pr.user) === null || _a === void 0 ? void 0 : _a.login}
 
 Here is a summary of your pull request:
@@ -34248,12 +34271,12 @@ GitHub PR Metrics Bot`;
                     login = 'subansal';
                 }
                 const msg = JSON.stringify({
-                    'repo_name': repo,
-                    'pr_number': `${pr.number}`,
-                    'time_to_merge': `${computeDeltaInHours(pr.merged_at, pr.created_at).toFixed(2)} hours`,
-                    'time_to_approval': !(approve && approve.submitted_at) ? 'not approved' : `${computeDeltaInHours(approve.submitted_at, pr.created_at).toFixed(2)} hours`,
-                    'pr_author': `${login}@linkedin.com`,
-                    'pr_link': `${pr.html_url}`
+                    repo_name: repo,
+                    pr_number: `${pr.number}`,
+                    time_to_merge: `${computeDeltaInHours(pr.merged_at, pr.created_at).toFixed(2)} hours`,
+                    time_to_approval: !(approve && approve.submitted_at) ? 'not approved' : `${computeDeltaInHours(approve.submitted_at, pr.created_at).toFixed(2)} hours`,
+                    pr_author: `${login}@linkedin.com`,
+                    pr_link: `${pr.html_url}`
                 });
                 core.info(`SLACK WEBHOOK MSG: ${msg}`);
                 const response = yield (0, node_fetch_1.default)(slackWebhook, {
@@ -34265,7 +34288,7 @@ GitHub PR Metrics Bot`;
                     }
                 });
                 /*
-          URL: https://hooks.slack.com/workflows/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
+          URL: https://hooks.slack.com/workflows/<??_ID>/<??_ID>/<??_ID>/<??_ID>
           {
             "repo_name": "Example text",
             "pr_number": "Example text",
@@ -34274,6 +34297,7 @@ GitHub PR Metrics Bot`;
             "pr_author": "example@example.com"
           }
                  */
+                core.info(`SLACK WEBHOOK RESPONSE: ${JSON.stringify(response, null, 2)}`);
             }
         }
         catch (error) {

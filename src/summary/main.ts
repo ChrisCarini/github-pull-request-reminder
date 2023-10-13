@@ -1,16 +1,16 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {getMetrics, getPrNumber, Metrics} from '../lib'
-import {components} from '@octokit/openapi-types'
-import { GetResponseDataTypeFromEndpointMethod } from '@octokit/types'
+import {components} from '@octokit/openapi-types' // eslint-disable-line import/no-unresolved
+import {GetResponseDataTypeFromEndpointMethod} from '@octokit/types' // eslint-disable-line import/no-unresolved
 import fetch from 'node-fetch'
 
-type ClientType = ReturnType<typeof github.getOctokit>;
+type ClientType = ReturnType<typeof github.getOctokit>
 
 const myToken = core.getInput('GITHUB_TOKEN')
 const octokit: ClientType = github.getOctokit(myToken)
 
-type GetPullsDataType = GetResponseDataTypeFromEndpointMethod<typeof octokit.rest.pulls.get>;
+type GetPullsDataType = GetResponseDataTypeFromEndpointMethod<typeof octokit.rest.pulls.get>
 
 const owner: string = github.context.repo.owner
 const repo: string = github.context.repo.repo
@@ -34,7 +34,9 @@ function generateCommentText(metricName: keyof Metrics, action: string, compareT
   const direction = age_seconds > metricP50Overall ? 'higher' : 'lower'
   return `<details open>
 <summary><b>${metricName}</b></summary>
-Your pull request took <b>${age.toFixed(2)}</b> hours to be ${action}. This is ${percent_diff}% <b>${direction}</b> than the P50 ${metricName} (currently ${(metricP50Overall / 3600).toFixed(2)} hours) for this project.
+Your pull request took <b>${age.toFixed(2)}</b> hours to be ${action}. This is ${percent_diff}% <b>${direction}</b> than the P50 ${metricName} (currently ${(
+    metricP50Overall / 3600
+  ).toFixed(2)} hours) for this project.
 </details>`
 }
 
@@ -49,7 +51,7 @@ function findSortedApprovals(prReviews: components['schemas']['pull-request-revi
         return 1
       }
 
-      return (new Date(a?.submitted_at)).getTime() - (new Date(b?.submitted_at)).getTime()
+      return new Date(a?.submitted_at).getTime() - new Date(b?.submitted_at).getTime()
     })
 }
 
@@ -58,24 +60,20 @@ function generateInfoTable(
   prComments: components['schemas']['issue-comment'][],
   prReviews: components['schemas']['pull-request-review'][]
 ): string {
-  const firstComment = prComments
-    .sort((a, b) => {
-      if (!a || !a?.created_at) {
-        return -1
-      }
-      if (!a || !b?.created_at) {
-        return 1
-      }
+  const firstComment = prComments.sort((a, b) => {
+    if (!a || !a?.created_at) {
+      return -1
+    }
+    if (!a || !b?.created_at) {
+      return 1
+    }
 
-      return (new Date(a?.created_at)).getTime() - (new Date(b?.created_at)).getTime()
-    })[0]
+    return new Date(a?.created_at).getTime() - new Date(b?.created_at).getTime()
+  })[0]
   const prApprovals = findSortedApprovals(prReviews)
   const firstApproval = prApprovals[0]
 
-  const collaborators = new Set([
-    ...prComments.map(value => value?.user?.login),
-    ...prReviews.map(value => value?.user?.login)
-  ])
+  const collaborators = new Set([...prComments.map(value => value?.user?.login), ...prReviews.map(value => value?.user?.login)])
 
   return `<details>
 <summary><h4>PR Recap</h4></summary>
@@ -102,11 +100,13 @@ async function run(): Promise<void> {
     }
 
     core.info(`PR #${prNumber} - Get PR Info...`)
-    const pr: GetPullsDataType = (await octokit.rest.pulls.get({
-      owner,
-      repo,
-      pull_number: prNumber,
-    })).data
+    const pr: GetPullsDataType = (
+      await octokit.rest.pulls.get({
+        owner,
+        repo,
+        pull_number: prNumber
+      })
+    ).data
 
     core.info(`PR #${prNumber} - Processing...`)
     if (!pr.merged_at) {
@@ -114,7 +114,11 @@ async function run(): Promise<void> {
       return
     }
 
-    const {data: prComments}: {data: components['schemas']['issue-comment'][]} = await octokit.rest.issues.listComments({
+    const {
+      data: prComments
+    }: {
+      data: components['schemas']['issue-comment'][]
+    } = await octokit.rest.issues.listComments({
       owner,
       repo,
       issue_number: prNumber
@@ -131,15 +135,18 @@ async function run(): Promise<void> {
     const merge_blurb = generateCommentText('Time to Merge', 'merged', pr.merged_at, pr.created_at)
 
     // Identify if the PR was approved, and if so, generate text for associated approval information.
-    const {data: prReviews}: {data: components['schemas']['pull-request-review'][]} = await octokit.rest.pulls.listReviews({
+    const {
+      data: prReviews
+    }: {
+      data: components['schemas']['pull-request-review'][]
+    } = await octokit.rest.pulls.listReviews({
       owner,
       repo,
       pull_number: prNumber
     })
     core.debug(`PR #${prNumber} - Reviews: ${JSON.stringify(prReviews, null, 2)}`)
     const approve = prReviews.find(review => review.state === 'APPROVED')
-    const approve_blurb = !(approve && approve.submitted_at) ? '' :
-      generateCommentText('Time to Approval', 'approved', approve.submitted_at, pr.created_at)
+    const approve_blurb = !(approve && approve.submitted_at) ? '' : generateCommentText('Time to Approval', 'approved', approve.submitted_at, pr.created_at)
 
     const commentText = `Hi @${pr.user?.login}
 
@@ -176,12 +183,12 @@ GitHub PR Metrics Bot`
         login = 'subansal'
       }
       const msg = JSON.stringify({
-        'repo_name': repo,
-        'pr_number': `${pr.number}`,
-        'time_to_merge': `${computeDeltaInHours(pr.merged_at, pr.created_at).toFixed(2)} hours`,
-        'time_to_approval': !(approve && approve.submitted_at) ? 'not approved' : `${computeDeltaInHours(approve.submitted_at, pr.created_at).toFixed(2)} hours`,
-        'pr_author': `${login}@linkedin.com`,
-        'pr_link': `${pr.html_url}`
+        repo_name: repo,
+        pr_number: `${pr.number}`,
+        time_to_merge: `${computeDeltaInHours(pr.merged_at, pr.created_at).toFixed(2)} hours`,
+        time_to_approval: !(approve && approve.submitted_at) ? 'not approved' : `${computeDeltaInHours(approve.submitted_at, pr.created_at).toFixed(2)} hours`,
+        pr_author: `${login}@linkedin.com`,
+        pr_link: `${pr.html_url}`
       })
       core.info(`SLACK WEBHOOK MSG: ${msg}`)
       const response = await fetch(slackWebhook, {
@@ -193,7 +200,7 @@ GitHub PR Metrics Bot`
         }
       })
       /*
-URL: https://hooks.slack.com/workflows/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
+URL: https://hooks.slack.com/workflows/<??_ID>/<??_ID>/<??_ID>/<??_ID>
 {
   "repo_name": "Example text",
   "pr_number": "Example text",
@@ -202,10 +209,9 @@ URL: https://hooks.slack.com/workflows/T06BYN8F7/A03QLRVBZF0/418087700629831098/
   "pr_author": "example@example.com"
 }
        */
+      core.info(`SLACK WEBHOOK RESPONSE: ${JSON.stringify(response, null, 2)}`)
     }
-
-  } catch
-    (error) {
+  } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
 }

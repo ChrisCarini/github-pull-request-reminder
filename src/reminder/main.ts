@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {getMetrics, pullRequests} from '../lib'
 
-type ClientType = ReturnType<typeof github.getOctokit>;
+type ClientType = ReturnType<typeof github.getOctokit>
 
 const myToken = core.getInput('GITHUB_TOKEN')
 const octokit: ClientType = github.getOctokit(myToken)
@@ -61,33 +61,32 @@ GitHub PR Reminder Bot`
 
       core.info(`Time since creation: ${age_seconds}`)
       const list_params = {owner, repo, issue_number: pr.number}
-      octokit.rest.issues.listComments(list_params).then(comments => {
-        const index = comments.data.findIndex(comment => comment.body?.includes('GitHub PR Reminder Bot'))
-        if (index !== -1) {
-          core.info(`PR #${pr.number} -- Does *NOT* need a reminder; one already exists.`)
-          return
-        }
+      const comments = await octokit.rest.issues.listComments(list_params)
+      const index = comments.data.findIndex(comment => comment.body?.includes('GitHub PR Reminder Bot'))
+      if (index !== -1) {
+        core.info(`PR #${pr.number} -- Does *NOT* need a reminder; one already exists.`)
+        return
+      }
 
-        core.info(`PR #${pr.number} -- Needs a reminder; ones does *NOT* exist yet.`)
-        const withinTimeBound = age_seconds >= crl_p50 - reminder_seconds && age_seconds < crl_p50
-        core.info(`Within time bound for a reminder?          : ${withinTimeBound}`)
-        core.info(`-----------------------------------------------------`)
-        core.info(`'age_seconds'                              : ${age_seconds}`)
-        core.info(`'crl_p50'                                  : ${crl_p50}`)
-        core.info(`'reminder_seconds'                         : ${reminder_seconds}`)
-        core.info(`'age_seconds >= crl_p50 - reminder_seconds': ${age_seconds >= crl_p50 - reminder_seconds}`)
-        core.info(`'age_seconds < crl_p50'                    : ${age_seconds < crl_p50}`)
-        if (withinTimeBound) {
-          //comment when time since creation is within reminder time of the p50 crl
-          const create_params = {
-            owner,
-            repo,
-            issue_number: pr.number,
-            body: commentText
-          }
-          octokit.rest.issues.createComment(create_params)
+      core.info(`PR #${pr.number} -- Needs a reminder; ones does *NOT* exist yet.`)
+      const withinTimeBound = age_seconds >= crl_p50 - reminder_seconds && age_seconds < crl_p50
+      core.info(`Within time bound for a reminder?          : ${withinTimeBound}`)
+      core.info(`-----------------------------------------------------`)
+      core.info(`'age_seconds'                              : ${age_seconds}`)
+      core.info(`'crl_p50'                                  : ${crl_p50}`)
+      core.info(`'reminder_seconds'                         : ${reminder_seconds}`)
+      core.info(`'age_seconds >= crl_p50 - reminder_seconds': ${age_seconds >= crl_p50 - reminder_seconds}`)
+      core.info(`'age_seconds < crl_p50'                    : ${age_seconds < crl_p50}`)
+      if (withinTimeBound) {
+        //comment when time since creation is within reminder time of the p50 crl
+        const create_params = {
+          owner,
+          repo,
+          issue_number: pr.number,
+          body: commentText
         }
-      })
+        octokit.rest.issues.createComment(create_params)
+      }
     }
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)

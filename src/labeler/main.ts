@@ -2,18 +2,14 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {getMetrics, getPrNumber} from '../lib'
 
-type ClientType = ReturnType<typeof github.getOctokit>;
+type ClientType = ReturnType<typeof github.getOctokit>
 
-async function addLabels(
-  client: ClientType,
-  prNumber: number,
-  labels: string[]
-) {
+async function addLabels(client: ClientType, prNumber: number, labels: string[]): Promise<void> {
   await client.rest.issues.addLabels({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: prNumber,
-    labels: labels
+    labels
   })
 }
 
@@ -22,14 +18,16 @@ function formatLabelName(thresholdName: string): string {
 }
 
 function computeChangeSize(prNumber: number): number {
-  const additions = github.context.payload.pull_request?.additions
-  const deletions = github.context.payload.pull_request?.deletions
-  const changeSize = additions + deletions
+  let additions: number = github.context.payload.pull_request?.additions
+  additions ??= 0
+  let deletions: number = github.context.payload.pull_request?.deletions
+  deletions ??= 0
+  const changeSize: number = additions + deletions
   core.info(`PR #${prNumber} has ${changeSize} LoC change (${additions} additions; ${deletions} deletions)`)
   return changeSize
 }
 
-async function run() {
+async function run(): Promise<void> {
   try {
     const token = core.getInput('GITHUB_TOKEN', {required: true})
 
@@ -49,11 +47,11 @@ async function run() {
     const repo = github.context.repo.repo
     core.debug(`Get repo labels for [${owner}/${repo}]...`)
     const {data: repoLabels} = await client.rest.issues.listLabelsForRepo({
-      owner: owner,
-      repo: repo
+      owner,
+      repo
     })
 
-    const repoLabelNames = repoLabels.map((repoLabel) => {
+    const repoLabelNames = repoLabels.map(repoLabel => {
       return repoLabel.name
     })
 
@@ -80,8 +78,7 @@ async function run() {
 
       const thresholdSize = threshold.threshold
       const desc = `For PRs that are considered '${threshold.name}' in size`
-      const descDetail = thresholdSize == -1 ? `LoC change size > ${prevThresholdSize}` :
-        `${prevThresholdSize} <= LoC change size <= ${thresholdSize}`
+      const descDetail = thresholdSize === -1 ? `LoC change size > ${prevThresholdSize}` : `${prevThresholdSize} <= LoC change size <= ${thresholdSize}`
       const description = `${desc} (${descDetail})`
 
       core.info(`Creating label in [${owner}/${repo}] => ${label} : ${description}`)
@@ -101,14 +98,15 @@ async function run() {
       const thresholdName = threshold.name
       const thresholdLoc = threshold.threshold
       core.debug(`${thresholdName}: ${thresholdLoc}`)
-      core.debug(`changeSize <= thresholdLoc || thresholdLoc == -1 ? :${changeSize <= thresholdLoc || thresholdLoc == -1}`)
-      if (changeSize <= thresholdLoc || thresholdLoc == -1) {
+      core.debug(`changeSize <= thresholdLoc || thresholdLoc == -1 ? :${changeSize <= thresholdLoc || thresholdLoc === -1}`)
+      if (changeSize <= thresholdLoc || thresholdLoc === -1) {
         const label = formatLabelName(thresholdName)
         core.info(`Adding ${label} to PR #${prNumber} and exiting.`)
-        await addLabels(client, prNumber as number, [label])
+        await addLabels(client, prNumber, [label])
         return
       }
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     core.error(error)
     core.setFailed(error.message)

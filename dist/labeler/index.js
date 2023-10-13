@@ -6847,7 +6847,7 @@ var import_endpoint = __nccwpck_require__(9440);
 var import_universal_user_agent = __nccwpck_require__(5030);
 
 // pkg/dist-src/version.js
-var VERSION = "8.1.2";
+var VERSION = "8.1.4";
 
 // pkg/dist-src/fetch-wrapper.js
 var import_is_plain_object = __nccwpck_require__(3287);
@@ -6953,7 +6953,15 @@ function fetchWrapper(requestOptions) {
       throw error;
     else if (error.name === "AbortError")
       throw error;
-    throw new import_request_error.RequestError(error.message, 500, {
+    let message = error.message;
+    if (error.name === "TypeError" && "cause" in error) {
+      if (error.cause instanceof Error) {
+        message = error.cause.message;
+      } else if (typeof error.cause === "string") {
+        message = error.cause;
+      }
+    }
+    throw new import_request_error.RequestError(message, 500, {
       request: requestOptions
     });
   });
@@ -10541,6 +10549,7 @@ module.exports = {
 
 const assert = __nccwpck_require__(9491)
 const net = __nccwpck_require__(1808)
+const http = __nccwpck_require__(3685)
 const { pipeline } = __nccwpck_require__(2781)
 const util = __nccwpck_require__(3983)
 const timers = __nccwpck_require__(9459)
@@ -10628,6 +10637,7 @@ const {
     HTTP2_HEADER_AUTHORITY,
     HTTP2_HEADER_METHOD,
     HTTP2_HEADER_PATH,
+    HTTP2_HEADER_SCHEME,
     HTTP2_HEADER_CONTENT_LENGTH,
     HTTP2_HEADER_EXPECT,
     HTTP2_HEADER_STATUS
@@ -10804,7 +10814,7 @@ class Client extends DispatcherBase {
     this[kConnector] = connect
     this[kSocket] = null
     this[kPipelining] = pipelining != null ? pipelining : 1
-    this[kMaxHeadersSize] = maxHeaderSize || 16384
+    this[kMaxHeadersSize] = maxHeaderSize || http.maxHeaderSize
     this[kKeepAliveDefaultTimeout] = keepAliveTimeout == null ? 4e3 : keepAliveTimeout
     this[kKeepAliveMaxTimeout] = keepAliveMaxTimeout == null ? 600e3 : keepAliveMaxTimeout
     this[kKeepAliveTimeoutThreshold] = keepAliveTimeoutThreshold == null ? 1e3 : keepAliveTimeoutThreshold
@@ -12224,7 +12234,7 @@ function writeH2 (client, session, request) {
   const h2State = client[kHTTP2SessionState]
 
   headers[HTTP2_HEADER_AUTHORITY] = host || client[kHost]
-  headers[HTTP2_HEADER_PATH] = path
+  headers[HTTP2_HEADER_METHOD] = method
 
   if (method === 'CONNECT') {
     session.ref()
@@ -12251,9 +12261,13 @@ function writeH2 (client, session, request) {
     })
 
     return true
-  } else {
-    headers[HTTP2_HEADER_METHOD] = method
   }
+
+  // https://tools.ietf.org/html/rfc7540#section-8.3
+  // :path and :scheme headers must be omited when sending CONNECT
+
+  headers[HTTP2_HEADER_PATH] = path
+  headers[HTTP2_HEADER_SCHEME] = 'https'
 
   // https://tools.ietf.org/html/rfc7231#section-4.3.1
   // https://tools.ietf.org/html/rfc7231#section-4.3.2
@@ -12391,6 +12405,7 @@ function writeH2 (client, session, request) {
       stream.cork()
       stream.write(body)
       stream.uncork()
+      stream.end()
       request.onBodySent(body)
       request.onRequestSent()
     } else if (util.isBlobLike(body)) {
@@ -12625,13 +12640,17 @@ async function writeIterable ({ h2stream, body, client, request, socket, content
           throw socket[kError]
         }
 
-        if (!h2stream.write(chunk)) {
+        const res = h2stream.write(chunk)
+        request.onBodySent(chunk)
+        if (!res) {
           await waitForDrain()
         }
       }
     } catch (err) {
       h2stream.destroy(err)
     } finally {
+      request.onRequestSent()
+      h2stream.end()
       h2stream
         .off('close', onDrain)
         .off('drain', onDrain)
@@ -12844,11 +12863,13 @@ class CompatFinalizer {
   }
 
   register (dispatcher, key) {
-    dispatcher.on('disconnect', () => {
-      if (dispatcher[kConnected] === 0 && dispatcher[kSize] === 0) {
-        this.finalizer(key)
-      }
-    })
+    if (dispatcher.on) {
+      dispatcher.on('disconnect', () => {
+        if (dispatcher[kConnected] === 0 && dispatcher[kSize] === 0) {
+          this.finalizer(key)
+        }
+      })
+    }
   }
 }
 
@@ -14514,7 +14535,8 @@ function processHeader (request, key, val, skipAppend = false) {
     key.toLowerCase() === 'content-type'
   ) {
     request.contentType = val
-    request.headers += processHeaderValue(key, val)
+    if (skipAppend) request.headers[key] = processHeaderValue(key, val, skipAppend)
+    else request.headers += processHeaderValue(key, val)
   } else if (
     key.length === 17 &&
     key.toLowerCase() === 'transfer-encoding'
@@ -19204,6 +19226,10 @@ async function httpRedirectFetch (fetchParams, response) {
   if (!sameOrigin(requestCurrentURL(request), locationURL)) {
     // https://fetch.spec.whatwg.org/#cors-non-wildcard-request-header-name
     request.headersList.delete('authorization')
+
+    // "Cookie" and "Host" are forbidden request-headers, which undici doesn't implement.
+    request.headersList.delete('cookie')
+    request.headersList.delete('host')
   }
 
   // 14. If request’s body is non-null, then set request’s body to the first return
@@ -19348,7 +19374,7 @@ async function httpNetworkOrCacheFetch (
   //    user agents should append `User-Agent`/default `User-Agent` value to
   //    httpRequest’s header list.
   if (!httpRequest.headersList.contains('user-agent')) {
-    httpRequest.headersList.append('user-agent', 'undici')
+    httpRequest.headersList.append('user-agent', typeof esbuildDetection === 'undefined' ? 'undici' : 'node')
   }
 
   //    15. If httpRequest’s cache mode is "default" and httpRequest’s header
@@ -19409,6 +19435,8 @@ async function httpNetworkOrCacheFetch (
       httpRequest.headersList.append('accept-encoding', 'gzip, deflate')
     }
   }
+
+  httpRequest.headersList.delete('host')
 
   //    20. If includeCredentials is true, then:
   if (includeCredentials) {
@@ -29753,7 +29781,7 @@ function addLabels(client, prNumber, labels) {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             issue_number: prNumber,
-            labels: labels
+            labels
         });
     });
 }
@@ -29762,8 +29790,10 @@ function formatLabelName(thresholdName) {
 }
 function computeChangeSize(prNumber) {
     var _a, _b;
-    const additions = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.additions;
-    const deletions = (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.deletions;
+    let additions = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.additions;
+    additions !== null && additions !== void 0 ? additions : (additions = 0);
+    let deletions = (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.deletions;
+    deletions !== null && deletions !== void 0 ? deletions : (deletions = 0);
     const changeSize = additions + deletions;
     core.info(`PR #${prNumber} has ${changeSize} LoC change (${additions} additions; ${deletions} deletions)`);
     return changeSize;
@@ -29784,10 +29814,10 @@ function run() {
             const repo = github.context.repo.repo;
             core.debug(`Get repo labels for [${owner}/${repo}]...`);
             const { data: repoLabels } = yield client.rest.issues.listLabelsForRepo({
-                owner: owner,
-                repo: repo
+                owner,
+                repo
             });
-            const repoLabelNames = repoLabels.map((repoLabel) => {
+            const repoLabelNames = repoLabels.map(repoLabel => {
                 return repoLabel.name;
             });
             const metricsData = (0, lib_1.getMetrics)();
@@ -29811,8 +29841,7 @@ function run() {
                 }
                 const thresholdSize = threshold.threshold;
                 const desc = `For PRs that are considered '${threshold.name}' in size`;
-                const descDetail = thresholdSize == -1 ? `LoC change size > ${prevThresholdSize}` :
-                    `${prevThresholdSize} <= LoC change size <= ${thresholdSize}`;
+                const descDetail = thresholdSize === -1 ? `LoC change size > ${prevThresholdSize}` : `${prevThresholdSize} <= LoC change size <= ${thresholdSize}`;
                 const description = `${desc} (${descDetail})`;
                 core.info(`Creating label in [${owner}/${repo}] => ${label} : ${description}`);
                 yield client.rest.issues.createLabel({
@@ -29829,14 +29858,15 @@ function run() {
                 const thresholdName = threshold.name;
                 const thresholdLoc = threshold.threshold;
                 core.debug(`${thresholdName}: ${thresholdLoc}`);
-                core.debug(`changeSize <= thresholdLoc || thresholdLoc == -1 ? :${changeSize <= thresholdLoc || thresholdLoc == -1}`);
-                if (changeSize <= thresholdLoc || thresholdLoc == -1) {
+                core.debug(`changeSize <= thresholdLoc || thresholdLoc == -1 ? :${changeSize <= thresholdLoc || thresholdLoc === -1}`);
+                if (changeSize <= thresholdLoc || thresholdLoc === -1) {
                     const label = formatLabelName(thresholdName);
                     core.info(`Adding ${label} to PR #${prNumber} and exiting.`);
                     yield addLabels(client, prNumber, [label]);
                     return;
                 }
             }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }
         catch (error) {
             core.error(error);

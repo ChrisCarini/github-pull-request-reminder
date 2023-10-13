@@ -1,4 +1,4 @@
-import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
+import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods' // eslint-disable-line import/named
 import {GitHub} from '@actions/github/lib/utils'
 import * as github from '@actions/github'
 
