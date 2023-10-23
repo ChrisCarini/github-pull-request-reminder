@@ -20,6 +20,11 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+  # "pull-requests: write permits an action to add a label to a pull request."
+  pull-requests: write
+
 jobs:
   smart_pr_reminder:
     name: "Smart PR Reminder"
