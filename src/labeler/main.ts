@@ -4,10 +4,10 @@ import {getMetrics, getPrNumber} from '../lib'
 
 type ClientType = ReturnType<typeof github.getOctokit>
 
-async function addLabels(client: ClientType, prNumber: number, labels: string[]): Promise<void> {
+async function addLabels(owner: string, repo: string, client: ClientType, prNumber: number, labels: string[]): Promise<void> {
   await client.rest.issues.addLabels({
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
+    owner,
+    repo,
     issue_number: prNumber,
     labels
   })
@@ -101,8 +101,8 @@ async function run(): Promise<void> {
       core.debug(`changeSize <= thresholdLoc || thresholdLoc == -1 ? :${changeSize <= thresholdLoc || thresholdLoc === -1}`)
       if (changeSize <= thresholdLoc || thresholdLoc === -1) {
         const label = formatLabelName(thresholdName)
-        core.info(`Adding ${label} to PR #${prNumber} and exiting.`)
-        await addLabels(client, prNumber, [label])
+        core.info(`Adding ${label} to PR #${prNumber} in ${owner}/${repo} and exiting.`)
+        await addLabels(owner, repo, client, prNumber, [label])
         return
       }
     }
