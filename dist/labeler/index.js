@@ -29775,11 +29775,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const lib_1 = __nccwpck_require__(6791);
-function addLabels(client, prNumber, labels) {
+function addLabels(owner, repo, client, prNumber, labels) {
     return __awaiter(this, void 0, void 0, function* () {
         yield client.rest.issues.addLabels({
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
+            owner,
+            repo,
             issue_number: prNumber,
             labels
         });
@@ -29861,8 +29861,8 @@ function run() {
                 core.debug(`changeSize <= thresholdLoc || thresholdLoc == -1 ? :${changeSize <= thresholdLoc || thresholdLoc === -1}`);
                 if (changeSize <= thresholdLoc || thresholdLoc === -1) {
                     const label = formatLabelName(thresholdName);
-                    core.info(`Adding ${label} to PR #${prNumber} and exiting.`);
-                    yield addLabels(client, prNumber, [label]);
+                    core.info(`Adding ${label} to PR #${prNumber} in ${owner}/${repo} and exiting.`);
+                    yield addLabels(owner, repo, client, prNumber, [label]);
                     return;
                 }
             }
