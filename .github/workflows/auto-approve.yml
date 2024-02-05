@@ -17,7 +17,7 @@ jobs:
         run: |
           echo ${{ github.actor }}
 
-      - uses: hmarr/auto-approve-action@v3
+      - uses: hmarr/auto-approve-action@v4
         if: |
           github.actor == 'ChrisCarini' ||
           github.actor == 'am19' ||
