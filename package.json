@@ -40,7 +40,7 @@
     "node-fetch": "^3.2.10"
   },
   "devDependencies": {
-    "@octokit/plugin-rest-endpoint-methods": "^10.2.0",
+    "@octokit/plugin-rest-endpoint-methods": "^10.4.0",
     "@types/node": "^20.11.20",
     "@typescript-eslint/parser": "^7.0.2",
     "@vercel/ncc": "^0.38.1",
