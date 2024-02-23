@@ -21,3 +21,9 @@ npm run build && npm run package
 ```shell
 npm test
 ```
+
+## Notes
+
+### Similar
+
+- https://github.com/apps/responder
