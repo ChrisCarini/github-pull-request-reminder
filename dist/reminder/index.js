@@ -30555,8 +30555,8 @@ const repo = github.context.repo.repo;
 const reminder_seconds = 14 * 60;
 const seconds_in_hour = 3600;
 function run() {
-    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b;
         const data = (0, lib_1.getMetrics)();
         const crl_p50 = data.metrics['Code Review Latency'].P50.Overall;
         try {
