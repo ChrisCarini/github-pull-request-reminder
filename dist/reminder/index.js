@@ -3626,9 +3626,14 @@ var import_graphql = __nccwpck_require__(8467);
 var import_auth_token = __nccwpck_require__(334);
 
 // pkg/dist-src/version.js
-var VERSION = "5.0.1";
+var VERSION = "5.1.0";
 
 // pkg/dist-src/index.js
+var noop = () => {
+};
+var consoleWarn = console.warn.bind(console);
+var consoleError = console.error.bind(console);
+var userAgentTrail = `octokit-core.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`;
 var Octokit = class {
   static {
     this.VERSION = VERSION;
@@ -3689,10 +3694,7 @@ var Octokit = class {
         format: ""
       }
     };
-    requestDefaults.headers["user-agent"] = [
-      options.userAgent,
-      `octokit-core.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`
-    ].filter(Boolean).join(" ");
+    requestDefaults.headers["user-agent"] = options.userAgent ? `${options.userAgent} ${userAgentTrail}` : userAgentTrail;
     if (options.baseUrl) {
       requestDefaults.baseUrl = options.baseUrl;
     }
@@ -3706,12 +3708,10 @@ var Octokit = class {
     this.graphql = (0, import_graphql.withCustomRequest)(this.request).defaults(requestDefaults);
     this.log = Object.assign(
       {
-        debug: () => {
-        },
-        info: () => {
-        },
-        warn: console.warn.bind(console),
-        error: console.error.bind(console)
+        debug: noop,
+        info: noop,
+        warn: consoleWarn,
+        error: consoleError
       },
       options.log
     );
@@ -3748,9 +3748,9 @@ var Octokit = class {
       this.auth = auth;
     }
     const classConstructor = this.constructor;
-    classConstructor.plugins.forEach((plugin) => {
-      Object.assign(this, plugin(this, options));
-    });
+    for (let i = 0; i < classConstructor.plugins.length; ++i) {
+      Object.assign(this, classConstructor.plugins[i](this, options));
+    }
   }
 };
 // Annotate the CommonJS export names for ESM import in node:
@@ -4315,7 +4315,7 @@ __export(dist_src_exports, {
 module.exports = __toCommonJS(dist_src_exports);
 
 // pkg/dist-src/version.js
-var VERSION = "9.0.0";
+var VERSION = "9.2.1";
 
 // pkg/dist-src/normalize-paginated-list-response.js
 function normalizePaginatedListResponse(response) {
@@ -4476,6 +4476,8 @@ var paginatingEndpoints = [
   "GET /orgs/{org}/members/{username}/codespaces",
   "GET /orgs/{org}/migrations",
   "GET /orgs/{org}/migrations/{migration_id}/repositories",
+  "GET /orgs/{org}/organization-roles/{role_id}/teams",
+  "GET /orgs/{org}/organization-roles/{role_id}/users",
   "GET /orgs/{org}/outside_collaborators",
   "GET /orgs/{org}/packages",
   "GET /orgs/{org}/packages/{package_type}/{package_name}/versions",
@@ -4484,9 +4486,11 @@ var paginatingEndpoints = [
   "GET /orgs/{org}/personal-access-tokens",
   "GET /orgs/{org}/personal-access-tokens/{pat_id}/repositories",
   "GET /orgs/{org}/projects",
+  "GET /orgs/{org}/properties/values",
   "GET /orgs/{org}/public_members",
   "GET /orgs/{org}/repos",
   "GET /orgs/{org}/rulesets",
+  "GET /orgs/{org}/rulesets/rule-suites",
   "GET /orgs/{org}/secret-scanning/alerts",
   "GET /orgs/{org}/security-advisories",
   "GET /orgs/{org}/teams",
@@ -4578,6 +4582,7 @@ var paginatingEndpoints = [
   "GET /repos/{owner}/{repo}/releases/{release_id}/reactions",
   "GET /repos/{owner}/{repo}/rules/branches/{branch}",
   "GET /repos/{owner}/{repo}/rulesets",
+  "GET /repos/{owner}/{repo}/rulesets/rule-suites",
   "GET /repos/{owner}/{repo}/secret-scanning/alerts",
   "GET /repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}/locations",
   "GET /repos/{owner}/{repo}/security-advisories",
