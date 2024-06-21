@@ -30626,13 +30626,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getMetrics = void 0;
+exports.getMetrics = getMetrics;
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 function getMetrics() {
     const response = fs_1.default.readFileSync('./data.json', 'utf-8');
     return JSON.parse(response);
 }
-exports.getMetrics = getMetrics;
 
 
 /***/ }),
@@ -30675,7 +30674,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPrNumber = exports.pullRequests = void 0;
+exports.pullRequests = pullRequests;
+exports.getPrNumber = getPrNumber;
 const github = __importStar(__nccwpck_require__(5438));
 function pullRequests(octokit, repoOwner, repoName, state) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -30688,7 +30688,6 @@ function pullRequests(octokit, repoOwner, repoName, state) {
         });
     });
 }
-exports.pullRequests = pullRequests;
 function getPrNumber() {
     const pullRequest = github.context.payload.pull_request;
     if (!pullRequest) {
@@ -30696,7 +30695,6 @@ function getPrNumber() {
     }
     return pullRequest.number;
 }
-exports.getPrNumber = getPrNumber;
 
 
 /***/ }),
