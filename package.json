@@ -35,7 +35,7 @@
     "@actions/core": "^1.9.1",
     "@actions/github": "^6.0.0",
     "@actions/http-client": "^2.2.1",
-    "@octokit/rest": "^20.1.1",
+    "@octokit/rest": "^21.0.0",
     "@octokit/types": "^13.5.0",
     "node-fetch": "^3.2.10"
   },
