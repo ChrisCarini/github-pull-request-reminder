@@ -1,8 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {getMetrics, getPrNumber, Metrics} from '../lib'
-import {components} from '@octokit/openapi-types' // eslint-disable-line import/no-unresolved
-import {GetResponseDataTypeFromEndpointMethod} from '@octokit/types' // eslint-disable-line import/no-unresolved
 import fetch from 'node-fetch'
 
 type ClientType = ReturnType<typeof github.getOctokit>
@@ -10,7 +8,9 @@ type ClientType = ReturnType<typeof github.getOctokit>
 const myToken = core.getInput('GITHUB_TOKEN')
 const octokit: ClientType = github.getOctokit(myToken)
 
-type GetPullsDataType = GetResponseDataTypeFromEndpointMethod<typeof octokit.rest.pulls.get>
+type GetPullsDataType = Awaited<ReturnType<typeof octokit.rest.pulls.get>>['data']
+type IssueCommentType = Awaited<ReturnType<typeof octokit.rest.issues.listComments>>['data'][number]
+type PullRequestReviewType = Awaited<ReturnType<typeof octokit.rest.pulls.listReviews>>['data'][number]
 
 const owner: string = github.context.repo.owner
 const repo: string = github.context.repo.repo
@@ -40,7 +40,7 @@ Your pull request took <b>${age.toFixed(2)}</b> hours to be ${action}. This is $
 </details>`
 }
 
-function findSortedApprovals(prReviews: components['schemas']['pull-request-review'][]): components['schemas']['pull-request-review'][] {
+function findSortedApprovals(prReviews: PullRequestReviewType[]): PullRequestReviewType[] {
   return prReviews
     .filter(review => review.state === 'APPROVED')
     .sort((a, b) => {
@@ -55,11 +55,7 @@ function findSortedApprovals(prReviews: components['schemas']['pull-request-revi
     })
 }
 
-function generateInfoTable(
-  pr: GetPullsDataType,
-  prComments: components['schemas']['issue-comment'][],
-  prReviews: components['schemas']['pull-request-review'][]
-): string {
+function generateInfoTable(pr: GetPullsDataType, prComments: IssueCommentType[], prReviews: PullRequestReviewType[]): string {
   const firstComment = prComments.sort((a, b) => {
     if (!a || !a?.created_at) {
       return -1
@@ -114,11 +110,7 @@ async function run(): Promise<void> {
       return
     }
 
-    const {
-      data: prComments
-    }: {
-      data: components['schemas']['issue-comment'][]
-    } = await octokit.rest.issues.listComments({
+    const {data: prComments} = await octokit.rest.issues.listComments({
       owner,
       repo,
       issue_number: prNumber
@@ -135,11 +127,7 @@ async function run(): Promise<void> {
     const merge_blurb = generateCommentText('Time to Merge', 'merged', pr.merged_at, pr.created_at)
 
     // Identify if the PR was approved, and if so, generate text for associated approval information.
-    const {
-      data: prReviews
-    }: {
-      data: components['schemas']['pull-request-review'][]
-    } = await octokit.rest.pulls.listReviews({
+    const {data: prReviews} = await octokit.rest.pulls.listReviews({
       owner,
       repo,
       pull_number: prNumber
