@@ -30924,239 +30924,6 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 3651:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getMetrics = getMetrics;
-const fs_1 = __importDefault(__nccwpck_require__(9896));
-function getMetrics() {
-    const response = fs_1.default.readFileSync('./data.json', 'utf-8');
-    return JSON.parse(response);
-}
-
-
-/***/ }),
-
-/***/ 3848:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.pullRequests = pullRequests;
-exports.getPrNumber = getPrNumber;
-const github = __importStar(__nccwpck_require__(3228));
-async function pullRequests(octokit, repoOwner, repoName, state) {
-    return octokit.rest.pulls.list({
-        owner: repoOwner,
-        repo: repoName,
-        state,
-        sort: 'created',
-        direction: 'desc'
-    });
-}
-function getPrNumber() {
-    const pullRequest = github.context.payload.pull_request;
-    if (!pullRequest) {
-        return undefined;
-    }
-    return pullRequest.number;
-}
-
-
-/***/ }),
-
-/***/ 2487:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__nccwpck_require__(3651), exports);
-__exportStar(__nccwpck_require__(3848), exports);
-
-
-/***/ }),
-
-/***/ 2685:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(7484));
-const github = __importStar(__nccwpck_require__(3228));
-const lib_1 = __nccwpck_require__(2487);
-const myToken = core.getInput('GITHUB_TOKEN');
-const octokit = github.getOctokit(myToken);
-const owner = github.context.repo.owner;
-const repo = github.context.repo.repo;
-const reminder_seconds = 14 * 60;
-const seconds_in_hour = 3600;
-async function run() {
-    const data = (0, lib_1.getMetrics)();
-    const crl_p50 = data.metrics['Code Review Latency'].P50.Overall;
-    try {
-        const allOpenPrs = await (0, lib_1.pullRequests)(octokit, owner, repo, 'open');
-        for (const pr of allOpenPrs.data) {
-            core.debug(`PR: ${JSON.stringify(pr, null, 2)}`);
-            const reviewerLogins = pr.requested_reviewers
-                ? pr.requested_reviewers
-                    .map(reviewer => {
-                    return reviewer.login;
-                })
-                    .join(', ')
-                : '';
-            core.info('');
-            core.info(`======================================================================`);
-            core.info(`PR:   #${pr.number} by [${pr.user?.login}] - ${pr.title} (${pr.state})`);
-            core.info(`======================================================================`);
-            core.info(`Link:       ${pr.html_url}`);
-            core.info(`Created at: ${pr.created_at}`);
-            core.info(`Updated at: ${pr.updated_at}`);
-            core.info(`Reviewers:  ${reviewerLogins}`);
-            const current_time = new Date();
-            const pr_creation_time = new Date(pr.created_at);
-            const age_seconds = (current_time.getTime() - pr_creation_time.getTime()) / 1000;
-            const age_hours = age_seconds / seconds_in_hour;
-            const crl_hours = crl_p50 / seconds_in_hour;
-            let reviewer_mention = '';
-            for (const login of reviewerLogins.split(', ')) {
-                if (login !== '') {
-                    reviewer_mention += `@${login} `;
-                }
-            }
-            const commentText = `Hi ${reviewer_mention}
-  
-@${pr.user?.login} opened this PR ${age_hours.toFixed(2)} business hours ago, and the P50 code review latency for this MP is ${crl_hours.toFixed(2)} business hours. If you are able, review this code now to help reduce this multiproduct's Code Review Latency!
-
-Beep Boop Beep,
-GitHub PR Reminder Bot`;
-            core.info(`Time since creation: ${age_seconds}`);
-            const list_params = { owner, repo, issue_number: pr.number };
-            const comments = await octokit.rest.issues.listComments(list_params);
-            const index = comments.data.findIndex(comment => comment.body?.includes('GitHub PR Reminder Bot'));
-            if (index !== -1) {
-                core.info(`PR #${pr.number} -- Does *NOT* need a reminder; one already exists.`);
-                return;
-            }
-            core.info(`PR #${pr.number} -- Needs a reminder; ones does *NOT* exist yet.`);
-            const withinTimeBound = age_seconds >= crl_p50 - reminder_seconds && age_seconds < crl_p50;
-            core.info(`Within time bound for a reminder?          : ${withinTimeBound}`);
-            core.info(`-----------------------------------------------------`);
-            core.info(`'age_seconds'                              : ${age_seconds}`);
-            core.info(`'crl_p50'                                  : ${crl_p50}`);
-            core.info(`'reminder_seconds'                         : ${reminder_seconds}`);
-            core.info(`'age_seconds >= crl_p50 - reminder_seconds': ${age_seconds >= crl_p50 - reminder_seconds}`);
-            core.info(`'age_seconds < crl_p50'                    : ${age_seconds < crl_p50}`);
-            if (withinTimeBound) {
-                //comment when time since creation is within reminder time of the p50 crl
-                const create_params = {
-                    owner,
-                    repo,
-                    issue_number: pr.number,
-                    body: commentText
-                };
-                octokit.rest.issues.createComment(create_params);
-            }
-        }
-    }
-    catch (error) {
-        if (error instanceof Error)
-            core.setFailed(error.message);
-    }
-}
-run();
-
-
-/***/ }),
-
 /***/ 2613:
 /***/ ((module) => {
 
@@ -33063,18 +32830,170 @@ module.exports = parseParams
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__nccwpck_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__nccwpck_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(2685);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(7484);
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var lib_github = __nccwpck_require__(3228);
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(9896);
+var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
+;// CONCATENATED MODULE: ./src/lib/data.ts
+
+function getMetrics() {
+    const response = external_fs_default().readFileSync('./data.json', 'utf-8');
+    return JSON.parse(response);
+}
+
+;// CONCATENATED MODULE: ./src/lib/github.ts
+
+async function pullRequests(octokit, repoOwner, repoName, state) {
+    return octokit.rest.pulls.list({
+        owner: repoOwner,
+        repo: repoName,
+        state,
+        sort: 'created',
+        direction: 'desc'
+    });
+}
+function getPrNumber() {
+    const pullRequest = github.context.payload.pull_request;
+    if (!pullRequest) {
+        return undefined;
+    }
+    return pullRequest.number;
+}
+
+;// CONCATENATED MODULE: ./src/lib/index.ts
+
+
+
+;// CONCATENATED MODULE: ./src/reminder/main.ts
+
+
+
+const myToken = core.getInput('GITHUB_TOKEN');
+const octokit = lib_github.getOctokit(myToken);
+const owner = lib_github.context.repo.owner;
+const repo = lib_github.context.repo.repo;
+const reminder_seconds = 14 * 60;
+const seconds_in_hour = 3600;
+async function run() {
+    const data = getMetrics();
+    const crl_p50 = data.metrics['Code Review Latency'].P50.Overall;
+    try {
+        const allOpenPrs = await pullRequests(octokit, owner, repo, 'open');
+        for (const pr of allOpenPrs.data) {
+            core.debug(`PR: ${JSON.stringify(pr, null, 2)}`);
+            const reviewerLogins = pr.requested_reviewers
+                ? pr.requested_reviewers
+                    .map(reviewer => {
+                    return reviewer.login;
+                })
+                    .join(', ')
+                : '';
+            core.info('');
+            core.info(`======================================================================`);
+            core.info(`PR:   #${pr.number} by [${pr.user?.login}] - ${pr.title} (${pr.state})`);
+            core.info(`======================================================================`);
+            core.info(`Link:       ${pr.html_url}`);
+            core.info(`Created at: ${pr.created_at}`);
+            core.info(`Updated at: ${pr.updated_at}`);
+            core.info(`Reviewers:  ${reviewerLogins}`);
+            const current_time = new Date();
+            const pr_creation_time = new Date(pr.created_at);
+            const age_seconds = (current_time.getTime() - pr_creation_time.getTime()) / 1000;
+            const age_hours = age_seconds / seconds_in_hour;
+            const crl_hours = crl_p50 / seconds_in_hour;
+            let reviewer_mention = '';
+            for (const login of reviewerLogins.split(', ')) {
+                if (login !== '') {
+                    reviewer_mention += `@${login} `;
+                }
+            }
+            const commentText = `Hi ${reviewer_mention}
+  
+@${pr.user?.login} opened this PR ${age_hours.toFixed(2)} business hours ago, and the P50 code review latency for this MP is ${crl_hours.toFixed(2)} business hours. If you are able, review this code now to help reduce this multiproduct's Code Review Latency!
+
+Beep Boop Beep,
+GitHub PR Reminder Bot`;
+            core.info(`Time since creation: ${age_seconds}`);
+            const list_params = { owner, repo, issue_number: pr.number };
+            const comments = await octokit.rest.issues.listComments(list_params);
+            const index = comments.data.findIndex(comment => comment.body?.includes('GitHub PR Reminder Bot'));
+            if (index !== -1) {
+                core.info(`PR #${pr.number} -- Does *NOT* need a reminder; one already exists.`);
+                return;
+            }
+            core.info(`PR #${pr.number} -- Needs a reminder; ones does *NOT* exist yet.`);
+            const withinTimeBound = age_seconds >= crl_p50 - reminder_seconds && age_seconds < crl_p50;
+            core.info(`Within time bound for a reminder?          : ${withinTimeBound}`);
+            core.info(`-----------------------------------------------------`);
+            core.info(`'age_seconds'                              : ${age_seconds}`);
+            core.info(`'crl_p50'                                  : ${crl_p50}`);
+            core.info(`'reminder_seconds'                         : ${reminder_seconds}`);
+            core.info(`'age_seconds >= crl_p50 - reminder_seconds': ${age_seconds >= crl_p50 - reminder_seconds}`);
+            core.info(`'age_seconds < crl_p50'                    : ${age_seconds < crl_p50}`);
+            if (withinTimeBound) {
+                //comment when time since creation is within reminder time of the p50 crl
+                const create_params = {
+                    owner,
+                    repo,
+                    issue_number: pr.number,
+                    body: commentText
+                };
+                octokit.rest.issues.createComment(create_params);
+            }
+        }
+    }
+    catch (error) {
+        if (error instanceof Error)
+            core.setFailed(error.message);
+    }
+}
+run();
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;
 //# sourceMappingURL=index.js.map
