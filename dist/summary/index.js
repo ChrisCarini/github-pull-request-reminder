@@ -35690,335 +35690,6 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 3651:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getMetrics = getMetrics;
-const fs_1 = __importDefault(__nccwpck_require__(9896));
-function getMetrics() {
-    const response = fs_1.default.readFileSync('./data.json', 'utf-8');
-    return JSON.parse(response);
-}
-
-
-/***/ }),
-
-/***/ 3848:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.pullRequests = pullRequests;
-exports.getPrNumber = getPrNumber;
-const github = __importStar(__nccwpck_require__(3228));
-async function pullRequests(octokit, repoOwner, repoName, state) {
-    return octokit.rest.pulls.list({
-        owner: repoOwner,
-        repo: repoName,
-        state,
-        sort: 'created',
-        direction: 'desc'
-    });
-}
-function getPrNumber() {
-    const pullRequest = github.context.payload.pull_request;
-    if (!pullRequest) {
-        return undefined;
-    }
-    return pullRequest.number;
-}
-
-
-/***/ }),
-
-/***/ 2487:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__nccwpck_require__(3651), exports);
-__exportStar(__nccwpck_require__(3848), exports);
-
-
-/***/ }),
-
-/***/ 3515:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(7484));
-const github = __importStar(__nccwpck_require__(3228));
-const lib_1 = __nccwpck_require__(2487);
-const node_fetch_1 = __importDefault(__nccwpck_require__(4034));
-const myToken = core.getInput('GITHUB_TOKEN');
-const octokit = github.getOctokit(myToken);
-const owner = github.context.repo.owner;
-const repo = github.context.repo.repo;
-const data = (0, lib_1.getMetrics)();
-function computeDeltaInHours(compareTime, creationTime) {
-    const compare_time = new Date(compareTime);
-    const creation_time = new Date(creationTime);
-    const age_seconds = (compare_time.getTime() - creation_time.getTime()) / 1000;
-    return age_seconds / 3600;
-}
-function generateCommentText(metricName, action, compareTime, creationTime) {
-    const compare_time = new Date(compareTime);
-    const creation_time = new Date(creationTime);
-    const age_seconds = (compare_time.getTime() - creation_time.getTime()) / 1000;
-    const age = age_seconds / 3600;
-    const metricP50Overall = data.metrics[metricName].P50.Overall;
-    const percent_diff = (100 * Math.abs((age_seconds - metricP50Overall) / metricP50Overall)).toFixed(2);
-    const direction = age_seconds > metricP50Overall ? 'higher' : 'lower';
-    return `<details open>
-<summary><b>${metricName}</b></summary>
-Your pull request took <b>${age.toFixed(2)}</b> hours to be ${action}. This is ${percent_diff}% <b>${direction}</b> than the P50 ${metricName} (currently ${(metricP50Overall / 3600).toFixed(2)} hours) for this project.
-</details>`;
-}
-function findSortedApprovals(prReviews) {
-    return prReviews
-        .filter(review => review.state === 'APPROVED')
-        .sort((a, b) => {
-        if (!a || !a?.submitted_at) {
-            return -1;
-        }
-        if (!b || !b?.submitted_at) {
-            return 1;
-        }
-        return new Date(a?.submitted_at).getTime() - new Date(b?.submitted_at).getTime();
-    });
-}
-function generateInfoTable(pr, prComments, prReviews) {
-    const firstComment = prComments.sort((a, b) => {
-        if (!a || !a?.created_at) {
-            return -1;
-        }
-        if (!a || !b?.created_at) {
-            return 1;
-        }
-        return new Date(a?.created_at).getTime() - new Date(b?.created_at).getTime();
-    })[0];
-    const prApprovals = findSortedApprovals(prReviews);
-    const firstApproval = prApprovals[0];
-    const collaborators = new Set([...prComments.map(value => value?.user?.login), ...prReviews.map(value => value?.user?.login)]);
-    return `<details>
-<summary><h4>PR Recap</h4></summary>
-<table>
-<tr><th>Opened at</th><td>${pr?.created_at}</td></tr>
-<tr><th># of comments</th><td>${prComments.length}</td></tr>
-<tr><th>First comment at</th><td>${firstComment?.created_at} <i>(by ${firstComment?.user?.login})</i></td></tr>
-<tr><th># of Approvals</th><td>${prApprovals.length}</td></tr>
-<tr><th>First Approval at</th><td>${firstApproval.submitted_at} <i>(by ${firstApproval?.user?.login})</i></td></tr>
-<tr><th>Merged at</th><td>${pr.merged_at}</td></tr>
-<tr><th># of collaborators</th><td>${collaborators.size}</td></tr>
-</table>
-</details>`;
-}
-async function run() {
-    core.info('Starting...');
-    try {
-        const prNumber = (0, lib_1.getPrNumber)();
-        if (!prNumber) {
-            core.error('Could not get pull request number from context, exiting');
-            return;
-        }
-        core.info(`PR #${prNumber} - Get PR Info...`);
-        const pr = (await octokit.rest.pulls.get({
-            owner,
-            repo,
-            pull_number: prNumber
-        })).data;
-        core.info(`PR #${prNumber} - Processing...`);
-        if (!pr.merged_at) {
-            core.info(`PR #${prNumber} does not have 'merged_at' set; closed no merge. Continuing to next PR...`);
-            return;
-        }
-        const { data: prComments } = await octokit.rest.issues.listComments({
-            owner,
-            repo,
-            issue_number: prNumber
-        });
-        core.debug(`PR #${prNumber} - Comments: ${JSON.stringify(prComments, null, 2)}`);
-        const index = prComments.findIndex(comment => comment.body?.includes('GitHub PR Metrics Bot'));
-        if (index !== -1) {
-            core.info(`PR #${prNumber} already has a comment from GitHub PR Metrics Bot. Continuing to next PR...`);
-            return;
-        }
-        core.info(`PR #${prNumber} - Generating comment text...`);
-        const merge_blurb = generateCommentText('Time to Merge', 'merged', pr.merged_at, pr.created_at);
-        // Identify if the PR was approved, and if so, generate text for associated approval information.
-        const { data: prReviews } = await octokit.rest.pulls.listReviews({
-            owner,
-            repo,
-            pull_number: prNumber
-        });
-        core.debug(`PR #${prNumber} - Reviews: ${JSON.stringify(prReviews, null, 2)}`);
-        const approve = prReviews.find(review => review.state === 'APPROVED');
-        const approve_blurb = !(approve && approve.submitted_at) ? '' : generateCommentText('Time to Approval', 'approved', approve.submitted_at, pr.created_at);
-        const commentText = `Hi @${pr.user?.login}
-
-Here is a summary of your pull request:
-
-${merge_blurb}
-
-${approve_blurb}
-
-${generateInfoTable(pr, prComments, prReviews)}
-
-Beep Boop Beep,
-GitHub PR Metrics Bot`;
-        await octokit.rest.issues.createComment({
-            owner,
-            repo,
-            issue_number: prNumber,
-            body: commentText
-        });
-        const slackWebhook = core.getInput('SLACK_WEBHOOK');
-        core.info(`SLACK WEBHOOK: ${slackWebhook}`);
-        if (slackWebhook) {
-            let login = pr.user?.login;
-            // REMAP FOR DEMO ONLY - testing on GH.com
-            if (login === 'ChrisCarini') {
-                login = 'ccarini';
-            }
-            if (login === 'am19') {
-                login = 'ankumehta';
-            }
-            if (login === 'bansalsulabh') {
-                login = 'subansal';
-            }
-            const msg = JSON.stringify({
-                repo_name: repo,
-                pr_number: `${pr.number}`,
-                time_to_merge: `${computeDeltaInHours(pr.merged_at, pr.created_at).toFixed(2)} hours`,
-                time_to_approval: !(approve && approve.submitted_at) ? 'not approved' : `${computeDeltaInHours(approve.submitted_at, pr.created_at).toFixed(2)} hours`,
-                pr_author: `${login}@linkedin.com`,
-                pr_link: `${pr.html_url}`
-            });
-            core.info(`SLACK WEBHOOK MSG: ${msg}`);
-            const response = await (0, node_fetch_1.default)(slackWebhook, {
-                method: 'POST',
-                body: msg,
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json'
-                }
-            });
-            /*
-      URL: https://hooks.slack.com/workflows/<??_ID>/<??_ID>/<??_ID>/<??_ID>
-      {
-        "repo_name": "Example text",
-        "pr_number": "Example text",
-        "time_to_merge": "Example text",
-        "time_to_approval": "Example text",
-        "pr_author": "example@example.com"
-      }
-             */
-            core.info(`SLACK WEBHOOK RESPONSE: ${JSON.stringify(response, null, 2)}`);
-        }
-    }
-    catch (error) {
-        if (error instanceof Error)
-            core.setFailed(error.message);
-    }
-}
-run();
-
-
-/***/ }),
-
 /***/ 2613:
 /***/ ((module) => {
 
@@ -38035,15 +37706,10 @@ const File = _File
 
 // EXPORTS
 __nccwpck_require__.d(__webpack_exports__, {
-  YQ: () => (/* reexport */ fetch_blob/* default */.A),
-  ZH: () => (/* reexport */ file/* default */.A),
-  k4: () => (/* binding */ blobFrom),
-  F8: () => (/* binding */ blobFromSync),
-  NX: () => (/* binding */ fileFrom),
-  _M: () => (/* binding */ fileFromSync)
+  ZH: () => (/* reexport */ file/* default */.A)
 });
 
-// UNUSED EXPORTS: default
+// UNUSED EXPORTS: Blob, blobFrom, blobFromSync, default, fileFrom, fileFromSync
 
 ;// CONCATENATED MODULE: external "node:fs"
 const external_node_fs_namespaceObject = require("node:fs");
@@ -38069,7 +37735,7 @@ const { stat } = external_node_fs_namespaceObject.promises
  * @param {string} path filepath on the disk
  * @param {string} [type] mimetype to use
  */
-const blobFromSync = (path, type) => fromBlob((0,external_node_fs_namespaceObject.statSync)(path), path, type)
+const blobFromSync = (path, type) => fromBlob(statSync(path), path, type)
 
 /**
  * @param {string} path filepath on the disk
@@ -38089,10 +37755,10 @@ const fileFrom = (path, type) => stat(path).then(stat => fromFile(stat, path, ty
  * @param {string} path filepath on the disk
  * @param {string} [type] mimetype to use
  */
-const fileFromSync = (path, type) => fromFile((0,external_node_fs_namespaceObject.statSync)(path), path, type)
+const fileFromSync = (path, type) => fromFile(statSync(path), path, type)
 
 // @ts-ignore
-const fromBlob = (stat, path, type = '') => new fetch_blob/* default */.A([new BlobDataItem({
+const fromBlob = (stat, path, type = '') => new Blob([new BlobDataItem({
   path,
   size: stat.size,
   lastModified: stat.mtimeMs,
@@ -38100,12 +37766,12 @@ const fromBlob = (stat, path, type = '') => new fetch_blob/* default */.A([new B
 })], { type })
 
 // @ts-ignore
-const fromFile = (stat, path, type = '') => new file/* default */.A([new BlobDataItem({
+const fromFile = (stat, path, type = '') => new File([new BlobDataItem({
   path,
   size: stat.size,
   lastModified: stat.mtimeMs,
   start: 0
-})], (0,external_node_path_namespaceObject.basename)(path), { type, lastModified: stat.mtimeMs })
+})], basename(path), { type, lastModified: stat.mtimeMs })
 
 /**
  * This is a blob backed up by a file on the disk
@@ -38476,32 +38142,183 @@ c.push(`--${b}--`)
 return new B(c,{type:"multipart/form-data; boundary="+b})}
 
 
-/***/ }),
+/***/ })
 
-/***/ 4034:
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
-
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __nccwpck_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		var threw = true;
+/******/ 		try {
+/******/ 			__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
+/******/ 			threw = false;
+/******/ 		} finally {
+/******/ 			if(threw) delete __webpack_module_cache__[moduleId];
+/******/ 		}
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__nccwpck_require__.m = __webpack_modules__;
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__nccwpck_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__nccwpck_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/ensure chunk */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.f = {};
+/******/ 		// This file contains only the entry chunk.
+/******/ 		// The chunk loading function for additional chunks
+/******/ 		__nccwpck_require__.e = (chunkId) => {
+/******/ 			return Promise.all(Object.keys(__nccwpck_require__.f).reduce((promises, key) => {
+/******/ 				__nccwpck_require__.f[key](chunkId, promises);
+/******/ 				return promises;
+/******/ 			}, []));
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/get javascript chunk filename */
+/******/ 	(() => {
+/******/ 		// This function allow to reference async chunks
+/******/ 		__nccwpck_require__.u = (chunkId) => {
+/******/ 			// return url for filenames based on template
+/******/ 			return "" + chunkId + ".index.js";
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/compat */
+/******/ 	
+/******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
+/******/ 	
+/******/ 	/* webpack/runtime/require chunk loading */
+/******/ 	(() => {
+/******/ 		// no baseURI
+/******/ 		
+/******/ 		// object to store loaded chunks
+/******/ 		// "1" means "loaded", otherwise not loaded yet
+/******/ 		var installedChunks = {
+/******/ 			792: 1
+/******/ 		};
+/******/ 		
+/******/ 		// no on chunks loaded
+/******/ 		
+/******/ 		var installChunk = (chunk) => {
+/******/ 			var moreModules = chunk.modules, chunkIds = chunk.ids, runtime = chunk.runtime;
+/******/ 			for(var moduleId in moreModules) {
+/******/ 				if(__nccwpck_require__.o(moreModules, moduleId)) {
+/******/ 					__nccwpck_require__.m[moduleId] = moreModules[moduleId];
+/******/ 				}
+/******/ 			}
+/******/ 			if(runtime) runtime(__nccwpck_require__);
+/******/ 			for(var i = 0; i < chunkIds.length; i++)
+/******/ 				installedChunks[chunkIds[i]] = 1;
+/******/ 		
+/******/ 		};
+/******/ 		
+/******/ 		// require() chunk loading for javascript
+/******/ 		__nccwpck_require__.f.require = (chunkId, promises) => {
+/******/ 			// "1" is the signal for "already loaded"
+/******/ 			if(!installedChunks[chunkId]) {
+/******/ 				if(true) { // all chunks have JS
+/******/ 					installChunk(require("./" + __nccwpck_require__.u(chunkId)));
+/******/ 				} else installedChunks[chunkId] = 1;
+/******/ 			}
+/******/ 		};
+/******/ 		
+/******/ 		// no external install chunk
+/******/ 		
+/******/ 		// no HMR
+/******/ 		
+/******/ 		// no HMR manifest
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
 "use strict";
-// ESM COMPAT FLAG
-__nccwpck_require__.r(__webpack_exports__);
 
-// EXPORTS
-__nccwpck_require__.d(__webpack_exports__, {
-  AbortError: () => (/* reexport */ AbortError),
-  Blob: () => (/* reexport */ from/* Blob */.YQ),
-  FetchError: () => (/* reexport */ FetchError),
-  File: () => (/* reexport */ from/* File */.ZH),
-  FormData: () => (/* reexport */ esm_min/* FormData */.fS),
-  Headers: () => (/* reexport */ Headers),
-  Request: () => (/* reexport */ Request),
-  Response: () => (/* reexport */ Response),
-  blobFrom: () => (/* reexport */ from/* blobFrom */.k4),
-  blobFromSync: () => (/* reexport */ from/* blobFromSync */.F8),
-  "default": () => (/* binding */ fetch),
-  fileFrom: () => (/* reexport */ from/* fileFrom */.NX),
-  fileFromSync: () => (/* reexport */ from/* fileFromSync */._M),
-  isRedirect: () => (/* reexport */ isRedirect)
-});
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(7484);
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var github = __nccwpck_require__(3228);
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(9896);
+var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
+;// CONCATENATED MODULE: ./src/lib/data.ts
+
+function getMetrics() {
+    const response = external_fs_default().readFileSync('./data.json', 'utf-8');
+    return JSON.parse(response);
+}
+
+;// CONCATENATED MODULE: ./src/lib/github.ts
+
+async function pullRequests(octokit, repoOwner, repoName, state) {
+    return octokit.rest.pulls.list({
+        owner: repoOwner,
+        repo: repoName,
+        state,
+        sort: 'created',
+        direction: 'desc'
+    });
+}
+function getPrNumber() {
+    const pullRequest = github.context.payload.pull_request;
+    if (!pullRequest) {
+        return undefined;
+    }
+    return pullRequest.number;
+}
+
+;// CONCATENATED MODULE: ./src/lib/index.ts
+
+
 
 ;// CONCATENATED MODULE: external "node:http"
 const external_node_http_namespaceObject = require("node:http");
@@ -40648,149 +40465,187 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 	});
 }
 
+;// CONCATENATED MODULE: ./src/summary/main.ts
 
-/***/ })
 
-/******/ 	});
-/************************************************************************/
-/******/ 	// The module cache
-/******/ 	var __webpack_module_cache__ = {};
-/******/ 	
-/******/ 	// The require function
-/******/ 	function __nccwpck_require__(moduleId) {
-/******/ 		// Check if module is in cache
-/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 		if (cachedModule !== undefined) {
-/******/ 			return cachedModule.exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
-/******/ 			exports: {}
-/******/ 		};
-/******/ 	
-/******/ 		// Execute the module function
-/******/ 		var threw = true;
-/******/ 		try {
-/******/ 			__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
-/******/ 			threw = false;
-/******/ 		} finally {
-/******/ 			if(threw) delete __webpack_module_cache__[moduleId];
-/******/ 		}
-/******/ 	
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/ 	
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__nccwpck_require__.m = __webpack_modules__;
-/******/ 	
-/************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/ensure chunk */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.f = {};
-/******/ 		// This file contains only the entry chunk.
-/******/ 		// The chunk loading function for additional chunks
-/******/ 		__nccwpck_require__.e = (chunkId) => {
-/******/ 			return Promise.all(Object.keys(__nccwpck_require__.f).reduce((promises, key) => {
-/******/ 				__nccwpck_require__.f[key](chunkId, promises);
-/******/ 				return promises;
-/******/ 			}, []));
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/get javascript chunk filename */
-/******/ 	(() => {
-/******/ 		// This function allow to reference async chunks
-/******/ 		__nccwpck_require__.u = (chunkId) => {
-/******/ 			// return url for filenames based on template
-/******/ 			return "" + chunkId + ".index.js";
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/compat */
-/******/ 	
-/******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
-/******/ 	
-/******/ 	/* webpack/runtime/require chunk loading */
-/******/ 	(() => {
-/******/ 		// no baseURI
-/******/ 		
-/******/ 		// object to store loaded chunks
-/******/ 		// "1" means "loaded", otherwise not loaded yet
-/******/ 		var installedChunks = {
-/******/ 			792: 1
-/******/ 		};
-/******/ 		
-/******/ 		// no on chunks loaded
-/******/ 		
-/******/ 		var installChunk = (chunk) => {
-/******/ 			var moreModules = chunk.modules, chunkIds = chunk.ids, runtime = chunk.runtime;
-/******/ 			for(var moduleId in moreModules) {
-/******/ 				if(__nccwpck_require__.o(moreModules, moduleId)) {
-/******/ 					__nccwpck_require__.m[moduleId] = moreModules[moduleId];
-/******/ 				}
-/******/ 			}
-/******/ 			if(runtime) runtime(__nccwpck_require__);
-/******/ 			for(var i = 0; i < chunkIds.length; i++)
-/******/ 				installedChunks[chunkIds[i]] = 1;
-/******/ 		
-/******/ 		};
-/******/ 		
-/******/ 		// require() chunk loading for javascript
-/******/ 		__nccwpck_require__.f.require = (chunkId, promises) => {
-/******/ 			// "1" is the signal for "already loaded"
-/******/ 			if(!installedChunks[chunkId]) {
-/******/ 				if(true) { // all chunks have JS
-/******/ 					installChunk(require("./" + __nccwpck_require__.u(chunkId)));
-/******/ 				} else installedChunks[chunkId] = 1;
-/******/ 			}
-/******/ 		};
-/******/ 		
-/******/ 		// no external install chunk
-/******/ 		
-/******/ 		// no HMR
-/******/ 		
-/******/ 		// no HMR manifest
-/******/ 	})();
-/******/ 	
-/************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(3515);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+
+
+const myToken = core.getInput('GITHUB_TOKEN');
+const octokit = github.getOctokit(myToken);
+const owner = github.context.repo.owner;
+const repo = github.context.repo.repo;
+const data = getMetrics();
+function computeDeltaInHours(compareTime, creationTime) {
+    const compare_time = new Date(compareTime);
+    const creation_time = new Date(creationTime);
+    const age_seconds = (compare_time.getTime() - creation_time.getTime()) / 1000;
+    return age_seconds / 3600;
+}
+function generateCommentText(metricName, action, compareTime, creationTime) {
+    const compare_time = new Date(compareTime);
+    const creation_time = new Date(creationTime);
+    const age_seconds = (compare_time.getTime() - creation_time.getTime()) / 1000;
+    const age = age_seconds / 3600;
+    const metricP50Overall = data.metrics[metricName].P50.Overall;
+    const percent_diff = (100 * Math.abs((age_seconds - metricP50Overall) / metricP50Overall)).toFixed(2);
+    const direction = age_seconds > metricP50Overall ? 'higher' : 'lower';
+    return `<details open>
+<summary><b>${metricName}</b></summary>
+Your pull request took <b>${age.toFixed(2)}</b> hours to be ${action}. This is ${percent_diff}% <b>${direction}</b> than the P50 ${metricName} (currently ${(metricP50Overall / 3600).toFixed(2)} hours) for this project.
+</details>`;
+}
+function findSortedApprovals(prReviews) {
+    return prReviews
+        .filter(review => review.state === 'APPROVED')
+        .sort((a, b) => {
+        if (!a || !a?.submitted_at) {
+            return -1;
+        }
+        if (!b || !b?.submitted_at) {
+            return 1;
+        }
+        return new Date(a?.submitted_at).getTime() - new Date(b?.submitted_at).getTime();
+    });
+}
+function generateInfoTable(pr, prComments, prReviews) {
+    const firstComment = prComments.sort((a, b) => {
+        if (!a || !a?.created_at) {
+            return -1;
+        }
+        if (!a || !b?.created_at) {
+            return 1;
+        }
+        return new Date(a?.created_at).getTime() - new Date(b?.created_at).getTime();
+    })[0];
+    const prApprovals = findSortedApprovals(prReviews);
+    const firstApproval = prApprovals[0];
+    const collaborators = new Set([...prComments.map(value => value?.user?.login), ...prReviews.map(value => value?.user?.login)]);
+    return `<details>
+<summary><h4>PR Recap</h4></summary>
+<table>
+<tr><th>Opened at</th><td>${pr?.created_at}</td></tr>
+<tr><th># of comments</th><td>${prComments.length}</td></tr>
+<tr><th>First comment at</th><td>${firstComment?.created_at} <i>(by ${firstComment?.user?.login})</i></td></tr>
+<tr><th># of Approvals</th><td>${prApprovals.length}</td></tr>
+<tr><th>First Approval at</th><td>${firstApproval.submitted_at} <i>(by ${firstApproval?.user?.login})</i></td></tr>
+<tr><th>Merged at</th><td>${pr.merged_at}</td></tr>
+<tr><th># of collaborators</th><td>${collaborators.size}</td></tr>
+</table>
+</details>`;
+}
+async function run() {
+    core.info('Starting...');
+    try {
+        const prNumber = getPrNumber();
+        if (!prNumber) {
+            core.error('Could not get pull request number from context, exiting');
+            return;
+        }
+        core.info(`PR #${prNumber} - Get PR Info...`);
+        const pr = (await octokit.rest.pulls.get({
+            owner,
+            repo,
+            pull_number: prNumber
+        })).data;
+        core.info(`PR #${prNumber} - Processing...`);
+        if (!pr.merged_at) {
+            core.info(`PR #${prNumber} does not have 'merged_at' set; closed no merge. Continuing to next PR...`);
+            return;
+        }
+        const { data: prComments } = await octokit.rest.issues.listComments({
+            owner,
+            repo,
+            issue_number: prNumber
+        });
+        core.debug(`PR #${prNumber} - Comments: ${JSON.stringify(prComments, null, 2)}`);
+        const index = prComments.findIndex(comment => comment.body?.includes('GitHub PR Metrics Bot'));
+        if (index !== -1) {
+            core.info(`PR #${prNumber} already has a comment from GitHub PR Metrics Bot. Continuing to next PR...`);
+            return;
+        }
+        core.info(`PR #${prNumber} - Generating comment text...`);
+        const merge_blurb = generateCommentText('Time to Merge', 'merged', pr.merged_at, pr.created_at);
+        // Identify if the PR was approved, and if so, generate text for associated approval information.
+        const { data: prReviews } = await octokit.rest.pulls.listReviews({
+            owner,
+            repo,
+            pull_number: prNumber
+        });
+        core.debug(`PR #${prNumber} - Reviews: ${JSON.stringify(prReviews, null, 2)}`);
+        const approve = prReviews.find(review => review.state === 'APPROVED');
+        const approve_blurb = !(approve && approve.submitted_at) ? '' : generateCommentText('Time to Approval', 'approved', approve.submitted_at, pr.created_at);
+        const commentText = `Hi @${pr.user?.login}
+
+Here is a summary of your pull request:
+
+${merge_blurb}
+
+${approve_blurb}
+
+${generateInfoTable(pr, prComments, prReviews)}
+
+Beep Boop Beep,
+GitHub PR Metrics Bot`;
+        await octokit.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number: prNumber,
+            body: commentText
+        });
+        const slackWebhook = core.getInput('SLACK_WEBHOOK');
+        core.info(`SLACK WEBHOOK: ${slackWebhook}`);
+        if (slackWebhook) {
+            let login = pr.user?.login;
+            // REMAP FOR DEMO ONLY - testing on GH.com
+            if (login === 'ChrisCarini') {
+                login = 'ccarini';
+            }
+            if (login === 'am19') {
+                login = 'ankumehta';
+            }
+            if (login === 'bansalsulabh') {
+                login = 'subansal';
+            }
+            const msg = JSON.stringify({
+                repo_name: repo,
+                pr_number: `${pr.number}`,
+                time_to_merge: `${computeDeltaInHours(pr.merged_at, pr.created_at).toFixed(2)} hours`,
+                time_to_approval: !(approve && approve.submitted_at) ? 'not approved' : `${computeDeltaInHours(approve.submitted_at, pr.created_at).toFixed(2)} hours`,
+                pr_author: `${login}@linkedin.com`,
+                pr_link: `${pr.html_url}`
+            });
+            core.info(`SLACK WEBHOOK MSG: ${msg}`);
+            const response = await fetch(slackWebhook, {
+                method: 'POST',
+                body: msg,
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                }
+            });
+            /*
+      URL: https://hooks.slack.com/workflows/<??_ID>/<??_ID>/<??_ID>/<??_ID>
+      {
+        "repo_name": "Example text",
+        "pr_number": "Example text",
+        "time_to_merge": "Example text",
+        "time_to_approval": "Example text",
+        "pr_author": "example@example.com"
+      }
+             */
+            core.info(`SLACK WEBHOOK RESPONSE: ${JSON.stringify(response, null, 2)}`);
+        }
+    }
+    catch (error) {
+        if (error instanceof Error)
+            core.setFailed(error.message);
+    }
+}
+run();
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;
 //# sourceMappingURL=index.js.map

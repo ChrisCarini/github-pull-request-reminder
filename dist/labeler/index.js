@@ -30924,254 +30924,6 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 1796:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(7484));
-const github = __importStar(__nccwpck_require__(3228));
-const lib_1 = __nccwpck_require__(2487);
-async function addLabels(owner, repo, client, prNumber, labels) {
-    await client.rest.issues.addLabels({
-        owner,
-        repo,
-        issue_number: prNumber,
-        labels
-    });
-}
-function formatLabelName(thresholdName) {
-    return `pr-size: ${thresholdName}`;
-}
-function computeChangeSize(prNumber) {
-    let additions = github.context.payload.pull_request?.additions;
-    additions ??= 0;
-    let deletions = github.context.payload.pull_request?.deletions;
-    deletions ??= 0;
-    const changeSize = additions + deletions;
-    core.info(`PR #${prNumber} has ${changeSize} LoC change (${additions} additions; ${deletions} deletions)`);
-    return changeSize;
-}
-async function run() {
-    try {
-        const token = core.getInput('GITHUB_TOKEN', { required: true });
-        core.info('Getting PR number from context...');
-        const prNumber = (0, lib_1.getPrNumber)();
-        if (!prNumber) {
-            core.error('Could not get pull request number from context, exiting');
-            return;
-        }
-        const changeSize = computeChangeSize(prNumber);
-        const client = github.getOctokit(token);
-        const owner = github.context.repo.owner;
-        const repo = github.context.repo.repo;
-        core.debug(`Get repo labels for [${owner}/${repo}]...`);
-        const { data: repoLabels } = await client.rest.issues.listLabelsForRepo({
-            owner,
-            repo
-        });
-        const repoLabelNames = repoLabels.map(repoLabel => {
-            return repoLabel.name;
-        });
-        const metricsData = (0, lib_1.getMetrics)();
-        const thresholds = metricsData.thresholds.sort((a, b) => {
-            // -1 is a marker for 'MAX' value, so sort it last.
-            if (a.threshold === -1) {
-                return 1;
-            }
-            if (b.threshold === -1) {
-                return -1;
-            }
-            return a.threshold - b.threshold;
-        });
-        // Create labels if needed
-        let prevThresholdSize = 0;
-        for (const threshold of thresholds) {
-            const label = formatLabelName(threshold.name);
-            if (repoLabelNames.includes(label)) {
-                core.debug(`Label [${label}] already exists for this repo. Skipping creation.`);
-                continue;
-            }
-            const thresholdSize = threshold.threshold;
-            const desc = `For PRs that are considered '${threshold.name}' in size`;
-            const descDetail = thresholdSize === -1 ? `LoC change size > ${prevThresholdSize}` : `${prevThresholdSize} <= LoC change size <= ${thresholdSize}`;
-            const description = `${desc} (${descDetail})`;
-            core.info(`Creating label in [${owner}/${repo}] => ${label} : ${description}`);
-            await client.rest.issues.createLabel({
-                owner,
-                repo,
-                name: label,
-                description
-            });
-            // Update `prevThresholdSize` for the next iteration
-            prevThresholdSize = thresholdSize;
-        }
-        // Add respective label to PR
-        for (const threshold of thresholds) {
-            const thresholdName = threshold.name;
-            const thresholdLoc = threshold.threshold;
-            core.debug(`${thresholdName}: ${thresholdLoc}`);
-            core.debug(`changeSize <= thresholdLoc || thresholdLoc == -1 ? :${changeSize <= thresholdLoc || thresholdLoc === -1}`);
-            if (changeSize <= thresholdLoc || thresholdLoc === -1) {
-                const label = formatLabelName(thresholdName);
-                core.info(`Adding ${label} to PR #${prNumber} in ${owner}/${repo} and exiting.`);
-                await addLabels(owner, repo, client, prNumber, [label]);
-                return;
-            }
-        }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }
-    catch (error) {
-        core.error(error);
-        core.setFailed(error.message);
-    }
-}
-run();
-
-
-/***/ }),
-
-/***/ 3651:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getMetrics = getMetrics;
-const fs_1 = __importDefault(__nccwpck_require__(9896));
-function getMetrics() {
-    const response = fs_1.default.readFileSync('./data.json', 'utf-8');
-    return JSON.parse(response);
-}
-
-
-/***/ }),
-
-/***/ 3848:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.pullRequests = pullRequests;
-exports.getPrNumber = getPrNumber;
-const github = __importStar(__nccwpck_require__(3228));
-async function pullRequests(octokit, repoOwner, repoName, state) {
-    return octokit.rest.pulls.list({
-        owner: repoOwner,
-        repo: repoName,
-        state,
-        sort: 'created',
-        direction: 'desc'
-    });
-}
-function getPrNumber() {
-    const pullRequest = github.context.payload.pull_request;
-    if (!pullRequest) {
-        return undefined;
-    }
-    return pullRequest.number;
-}
-
-
-/***/ }),
-
-/***/ 2487:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__nccwpck_require__(3651), exports);
-__exportStar(__nccwpck_require__(3848), exports);
-
-
-/***/ }),
-
 /***/ 2613:
 /***/ ((module) => {
 
@@ -33078,18 +32830,185 @@ module.exports = parseParams
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__nccwpck_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__nccwpck_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(1796);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(7484);
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var github = __nccwpck_require__(3228);
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(9896);
+var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
+;// CONCATENATED MODULE: ./src/lib/data.ts
+
+function getMetrics() {
+    const response = external_fs_default().readFileSync('./data.json', 'utf-8');
+    return JSON.parse(response);
+}
+
+;// CONCATENATED MODULE: ./src/lib/github.ts
+
+async function pullRequests(octokit, repoOwner, repoName, state) {
+    return octokit.rest.pulls.list({
+        owner: repoOwner,
+        repo: repoName,
+        state,
+        sort: 'created',
+        direction: 'desc'
+    });
+}
+function getPrNumber() {
+    const pullRequest = github.context.payload.pull_request;
+    if (!pullRequest) {
+        return undefined;
+    }
+    return pullRequest.number;
+}
+
+;// CONCATENATED MODULE: ./src/lib/index.ts
+
+
+
+;// CONCATENATED MODULE: ./src/labeler/main.ts
+
+
+
+async function addLabels(owner, repo, client, prNumber, labels) {
+    await client.rest.issues.addLabels({
+        owner,
+        repo,
+        issue_number: prNumber,
+        labels
+    });
+}
+function formatLabelName(thresholdName) {
+    return `pr-size: ${thresholdName}`;
+}
+function computeChangeSize(prNumber) {
+    let additions = github.context.payload.pull_request?.additions;
+    additions ??= 0;
+    let deletions = github.context.payload.pull_request?.deletions;
+    deletions ??= 0;
+    const changeSize = additions + deletions;
+    core.info(`PR #${prNumber} has ${changeSize} LoC change (${additions} additions; ${deletions} deletions)`);
+    return changeSize;
+}
+async function run() {
+    try {
+        const token = core.getInput('GITHUB_TOKEN', { required: true });
+        core.info('Getting PR number from context...');
+        const prNumber = getPrNumber();
+        if (!prNumber) {
+            core.error('Could not get pull request number from context, exiting');
+            return;
+        }
+        const changeSize = computeChangeSize(prNumber);
+        const client = github.getOctokit(token);
+        const owner = github.context.repo.owner;
+        const repo = github.context.repo.repo;
+        core.debug(`Get repo labels for [${owner}/${repo}]...`);
+        const { data: repoLabels } = await client.rest.issues.listLabelsForRepo({
+            owner,
+            repo
+        });
+        const repoLabelNames = repoLabels.map(repoLabel => {
+            return repoLabel.name;
+        });
+        const metricsData = getMetrics();
+        const thresholds = metricsData.thresholds.sort((a, b) => {
+            // -1 is a marker for 'MAX' value, so sort it last.
+            if (a.threshold === -1) {
+                return 1;
+            }
+            if (b.threshold === -1) {
+                return -1;
+            }
+            return a.threshold - b.threshold;
+        });
+        // Create labels if needed
+        let prevThresholdSize = 0;
+        for (const threshold of thresholds) {
+            const label = formatLabelName(threshold.name);
+            if (repoLabelNames.includes(label)) {
+                core.debug(`Label [${label}] already exists for this repo. Skipping creation.`);
+                continue;
+            }
+            const thresholdSize = threshold.threshold;
+            const desc = `For PRs that are considered '${threshold.name}' in size`;
+            const descDetail = thresholdSize === -1 ? `LoC change size > ${prevThresholdSize}` : `${prevThresholdSize} <= LoC change size <= ${thresholdSize}`;
+            const description = `${desc} (${descDetail})`;
+            core.info(`Creating label in [${owner}/${repo}] => ${label} : ${description}`);
+            await client.rest.issues.createLabel({
+                owner,
+                repo,
+                name: label,
+                description
+            });
+            // Update `prevThresholdSize` for the next iteration
+            prevThresholdSize = thresholdSize;
+        }
+        // Add respective label to PR
+        for (const threshold of thresholds) {
+            const thresholdName = threshold.name;
+            const thresholdLoc = threshold.threshold;
+            core.debug(`${thresholdName}: ${thresholdLoc}`);
+            core.debug(`changeSize <= thresholdLoc || thresholdLoc == -1 ? :${changeSize <= thresholdLoc || thresholdLoc === -1}`);
+            if (changeSize <= thresholdLoc || thresholdLoc === -1) {
+                const label = formatLabelName(thresholdName);
+                core.info(`Adding ${label} to PR #${prNumber} in ${owner}/${repo} and exiting.`);
+                await addLabels(owner, repo, client, prNumber, [label]);
+                return;
+            }
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }
+    catch (error) {
+        core.error(error);
+        core.setFailed(error.message);
+    }
+}
+run();
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;
 //# sourceMappingURL=index.js.map
