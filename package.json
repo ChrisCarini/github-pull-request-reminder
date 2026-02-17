@@ -34,7 +34,7 @@
   "dependencies": {
     "@actions/core": "^3.0.0",
     "@actions/github": "^6.0.1",
-    "@actions/http-client": "^3.0.0",
+    "@actions/http-client": "^4.0.0",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
