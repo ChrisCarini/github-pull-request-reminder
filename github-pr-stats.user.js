@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GitHub PR Stats
 // @namespace    https://chriscarini.com
-// @version      0.0.2
+// @version      0.0.3
 // @description  Augment GitHub PRs with nice statistics.
 // @author       Chris Carini & Sulabh Bansal
 // @match        https://*.ghe.com/*/pull/*
@@ -74,10 +74,18 @@ function get_project_name() {
   return og_url_parts.at(repo_name_loc)
 }
 
+let isLoading = false
+
 function loadDeveloperInsights() {
   'use strict'
 
   console.log('GitHub PR Stats starting...')
+
+  // Check synchronous in-flight flag to prevent race conditions from async requests.
+  if (isLoading) {
+    console.log(`GitHub Stats is already loading. Exiting.`)
+    return
+  }
 
   // Check if marker exists, if so, exit.
   const marker = document.querySelectorAll(`#${GITHUB_STATS_MARKER}`)
@@ -85,6 +93,8 @@ function loadDeveloperInsights() {
     console.log(`GitHub Stats already exists on page. Exiting.`)
     return
   }
+
+  isLoading = true
 
   const project = get_project_name()
 
@@ -100,6 +110,7 @@ function loadDeveloperInsights() {
       debug(metrics)
       if (Object.keys(metrics).length === 0) {
         debug(`There are no keys in the 'metrics' object of the API call - exiting.`)
+        isLoading = false
         return
       }
 
@@ -287,6 +298,8 @@ function loadDeveloperInsights() {
         detailChart.legend.legendItems[0].fillStyle = LIGHT_GREY
         detailChart.legend.legendItems[1].fillStyle = DARK_GREY
       }
+
+      isLoading = false
     }
   })
 
@@ -297,9 +310,11 @@ function loadDeveloperInsights() {
 function firstLoad() {
   setTimeout(function() {
     console.log('Adding mutation observer...')
+    let debounceTimer = null
     const callback = function(mutationList, observer) {
       console.log('MUTATIONS FOUND!!!!')
-      loadDeveloperInsights()
+      clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(() => loadDeveloperInsights(), 300)
     }
     // GitHub.com - PR page - sidebar
     //      *AND*
