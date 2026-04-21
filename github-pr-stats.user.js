@@ -102,7 +102,12 @@ function loadDeveloperInsights() {
 
   debug(`REQUEST URL FOR PROJECT [${project}]: ${request_url}`)
   GM_xmlhttpRequest({
-    method: 'GET', url: request_url, onload: function(result) {
+    method: 'GET', url: request_url,
+    onerror: function() { isLoading = false },
+    ontimeout: function() { isLoading = false },
+    onabort: function() { isLoading = false },
+    onload: function(result) {
+     try {
       const data = JSON.parse(result.responseText)
       debug(data)
 
@@ -110,7 +115,6 @@ function loadDeveloperInsights() {
       debug(metrics)
       if (Object.keys(metrics).length === 0) {
         debug(`There are no keys in the 'metrics' object of the API call - exiting.`)
-        isLoading = false
         return
       }
 
@@ -176,16 +180,20 @@ function loadDeveloperInsights() {
         overviewP90HashMap.set(index, toHrs(stats['P90']['Overall']))
       })
 
-      // Add a marker element intended for checking if GitHub Stats is shown...
-      ourHtml += `<div id='${GITHUB_STATS_MARKER}'></div>`
-
       // Add our element into the GitHub DOM
       let theirThing = document.getElementById('partial-discussion-sidebar')
       if (typeof theirThing === 'undefined' || (typeof theirThing === 'object' && theirThing === null)) {
         theirThing = document.getElementsByClassName('BorderGrid--spacious')[0]
       }
       const ourThing = document.createElement('div')
+      // Marker ID lives on the wrapper itself, so the panel and its dedup key
+      // are inseparable — no window where a panel exists without its marker.
+      ourThing.id = GITHUB_STATS_MARKER
       ourThing.innerHTML = ourHtml
+
+      // Self-heal: remove any pre-existing panels before inserting ours, so
+      // the DOM is guaranteed to hold exactly one panel after this line.
+      document.querySelectorAll(`#${GITHUB_STATS_MARKER}`).forEach(el => el.remove())
       theirThing.prepend(ourThing)
 
       // Grab the default click handler for the legend; we'll use it later.
@@ -298,8 +306,11 @@ function loadDeveloperInsights() {
         detailChart.legend.legendItems[0].fillStyle = LIGHT_GREY
         detailChart.legend.legendItems[1].fillStyle = DARK_GREY
       }
-
+     } finally {
+      // Always clear the in-flight flag, even if anything above threw — otherwise
+      // the script permanently locks itself out of rendering the panel.
       isLoading = false
+     }
     }
   })
 
