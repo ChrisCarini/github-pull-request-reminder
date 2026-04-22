@@ -33,7 +33,7 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^3.0.1",
-    "@actions/github": "^9.1.0",
+    "@actions/github": "^9.1.1",
     "@actions/http-client": "^4.0.1",
     "node-fetch": "^3.3.2"
   },
