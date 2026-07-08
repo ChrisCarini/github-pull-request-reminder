@@ -8,13 +8,6 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    ignore:
-      # `eslint-plugin-github` only supports `eslint@"^8 || ^9"` (as of v6.0.0).
-      # Ignore major version bumps for `eslint` until `eslint-plugin-github`
-      # publishes a release that adds support for `eslint@^10`.
-      # See: https://github.com/github/eslint-plugin-github
-      - dependency-name: "eslint"
-        update-types: ["version-update:semver-major"]
 
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
