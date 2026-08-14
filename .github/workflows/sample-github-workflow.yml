@@ -53,7 +53,7 @@ jobs:
 #      ##  Option #2: Data can be pulled from a repository
 #      ######################################################
 #      - name: Fetch Data
-#        uses: actions/checkout@v3
+#        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 #
 #      - name: Move data JSON to expected location
 #        shell: bash
@@ -93,7 +93,7 @@ jobs:
           EOF
 
       - name: PR Reminder & Summary
-        uses: ChrisCarini/github-pull-request-reminder@main
+        uses: ChrisCarini/github-pull-request-reminder@c788a10fbf2f1c42607d70f56d922861cff01eb7 # main
         with:
           smartPrReminders: true
           prSizeLabel: true
